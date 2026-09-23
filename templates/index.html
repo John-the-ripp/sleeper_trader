@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>sleeper-trader</title>
+<style>
+  body { background:#0d1117; color:#c9d1d9; font-family: ui-monospace, monospace; padding: 20px; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { padding: 4px 10px; text-align: right; border-bottom: 1px solid #21262d; }
+  th:first-child, td:first-child { text-align: left; }
+  .pos { color: #3fb950; }
+  .neg { color: #f85149; }
+  #meta { color: #8b949e; margin-bottom: 10px; }
+</style>
+</head>
+<body>
+<h1>sleeper-trader — chutes &amp; hausses</h1>
+<div id="meta">chargement...</div>
+<table>
+  <thead>
+    <tr><th>Titre</th><th>ISIN</th><th>Variation</th><th>Bid</th><th>Reference</th></tr>
+  </thead>
+  <tbody id="corps"></tbody>
+</table>
+
+<script>
+async function tick() {
+  const r = await fetch("/chutes").then(x => x.json()).catch(() => null);
+  if (!r) return;
+  document.querySelector("#meta").textContent =
+    (r.en_cours ? "scan en cours... " : "dernier scan : " + (r.heure || "jamais")) +
+    " — " + r.lignes.length + " titre(s)";
+  document.querySelector("#corps").innerHTML = r.lignes.map(l => `
+    <tr>
+      <td>${l.nom}</td>
+      <td>${l.isin}</td>
+      <td class="${l.variation_pct >= 0 ? 'pos' : 'neg'}">${l.variation_pct > 0 ? '+' : ''}${l.variation_pct}%</td>
+      <td>${l.bid}</td>
+      <td>${l.pre}</td>
+    </tr>`).join("");
+}
+tick();
+setInterval(tick, 5000);
+</script>
+</body>
+</html>
