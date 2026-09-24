@@ -228,7 +228,7 @@ tbody tr.sel td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
 .seg.sens button.on[data-s="baisse"] { background: var(--down-2); color: var(--down); box-shadow: none; }
 .seg.sens button.on[data-s="hausse"] { background: var(--up-2); color: var(--up); box-shadow: none; }
 .vcell { display: inline-flex; align-items: center; gap: 10px; justify-content: flex-end; }
-.vbar { width: 70px; height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; display: flex; justify-content: flex-end; }
+.vbar { width: 56px; height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; display: flex; justify-content: flex-end; }
 .vbar i { display: block; height: 100%; border-radius: 3px; }
 .vtxt { font: 600 13px "Geist Mono"; min-width: 76px; text-align: right; }
 .src { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-left: 6px; vertical-align: middle; background: var(--ink-4); }
@@ -256,6 +256,58 @@ tbody tr.sel td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
 .news .nt { font-size: 12.5px; color: var(--ink); line-height: 1.4; }
 .news .ns { font-size: 11px; color: var(--ink-3); margin-top: 1px; }
 .flag.motif { background: var(--up-2); color: var(--up); }
+
+/* explications IA */
+.cat { display: inline-flex; align-items: center; gap: 5px; font: 600 10.5px Geist; text-transform: uppercase; letter-spacing: .04em;
+  padding: 2px 7px; border-radius: 5px; white-space: nowrap; flex: none; }
+.cat.news { background: var(--accent-2); color: var(--accent); }
+.cat.secteur { background: var(--warn-2); color: var(--warn); }
+.cat.technique { background: var(--panel-3); color: var(--ink-2); }
+.cat.artefact { background: var(--down-2); color: var(--down); }
+.cat.inconnu { background: var(--panel-2); color: var(--ink-3); border: 1px solid var(--line); }
+.why { display: flex; align-items: center; gap: 8px; min-width: 250px; max-width: 420px; white-space: normal; text-align: left; }
+.why .c { font-size: 12px; color: var(--ink-2); line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.why-btn { height: 24px; padding: 0 9px; border-radius: 6px; border: 1px dashed var(--line-3); color: var(--ink-3); font-size: 11.5px; }
+.why-btn:hover { color: var(--accent); border-color: var(--accent); }
+td.whytd { text-align: left; }
+
+/* rebonds du jour */
+.rgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 12px; padding: 12px; }
+.rc { padding: 14px 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel-2); cursor: pointer; transition: .15s; }
+.rc:hover { border-color: var(--line-3); }
+.rc.sel { border-color: var(--accent); box-shadow: var(--glow); }
+.rc .h { display: flex; gap: 10px; align-items: center; }
+.rc .mv { display: flex; align-items: center; gap: 10px; margin: 12px 0 10px; font: 600 20px "Geist Mono"; letter-spacing: -.02em; }
+.rc .mv small { display: block; font: 500 10.5px Geist; color: var(--ink-3); letter-spacing: .04em; text-transform: uppercase; }
+.rc .mv .arr { color: var(--ink-4); font-size: 16px; }
+.rc .why2 { display: grid; grid-template-columns: 64px 1fr; gap: 4px 10px; font-size: 12.5px; line-height: 1.4; margin-top: 8px; }
+.rc .why2 span:nth-child(odd) { color: var(--ink-3); font-size: 11.5px; padding-top: 1px; }
+.rc .foot { display: flex; gap: 8px; align-items: center; margin-top: 10px; font-size: 11.5px; color: var(--ink-3); flex-wrap: wrap; }
+
+/* alertes */
+.bell { position: relative; }
+.bell .badge { position: absolute; top: -5px; right: -5px; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 9px;
+  font: 600 10px/17px "Geist Mono"; text-align: center; background: var(--down); color: #fff; }
+.bell.on svg { color: var(--accent); }
+.bell.ring svg { animation: ring .8s ease-in-out 2; transform-origin: 50% 10%; }
+@keyframes ring { 20% { transform: rotate(14deg); } 40% { transform: rotate(-12deg); } 60% { transform: rotate(8deg); } 80% { transform: rotate(-4deg); } }
+.apanel { position: fixed; top: 58px; right: 22px; z-index: 58; width: min(420px, calc(100vw - 32px)); max-height: 70vh; display: none; flex-direction: column;
+  background: var(--panel); border: 1px solid var(--line-2); border-radius: 14px; box-shadow: var(--shadow); overflow: hidden; }
+.apanel.open { display: flex; animation: slide .15s ease-out; }
+.apanel .ah { display: flex; align-items: center; gap: 8px; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+.apanel .ah b { flex: 1; font-size: 13.5px; }
+.apanel .opts { display: flex; gap: 6px; flex-wrap: wrap; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+.apanel .lst { overflow-y: auto; }
+.al { display: grid; grid-template-columns: 34px 1fr; gap: 10px; padding: 11px 14px; border-bottom: 1px solid var(--line); cursor: pointer; }
+.al:hover { background: var(--panel-2); }
+.al.new { background: color-mix(in srgb, var(--accent-2) 60%, transparent); }
+.al .ic { width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; font-size: 14px; }
+.al .ic.chute, .al .ic.watchlist { background: var(--down-2); color: var(--down); }
+.al .ic.rebond { background: var(--up-2); color: var(--up); }
+.al .t1 { display: flex; gap: 8px; align-items: baseline; font-size: 12.5px; }
+.al .t1 b { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.al .t2 { font-size: 12px; color: var(--ink-2); margin-top: 2px; line-height: 1.35; }
+.al .t3 { font-size: 11px; color: var(--ink-3); margin-top: 3px; }
 
 /* watchlist grid */
 .wgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; padding: 12px; }
@@ -387,13 +439,17 @@ tbody tr.sel td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
       <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17V5"/><path d="m3 9 4-4 4 4"/><path d="M17 7v12"/><path d="m21 15-4 4-4-4"/></svg>
       <span class="tip">Chutes &amp; hausses <kbd>2</kbd></span>
     </button>
+    <button class="nav" data-view="rebonds" aria-label="Rebonds du jour">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5l6 9 4-4 8 9"/><path d="M15 19h6v-6"/></svg>
+      <span class="badge" id="b-rebonds" hidden></span><span class="tip">Rebonds du jour · chute hier, hausse aujourd'hui <kbd>3</kbd></span>
+    </button>
     <button class="nav" data-view="live" aria-label="Live">
       <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 8L9 4l-3 8H2"/></svg>
-      <span class="badge" id="b-live" hidden></span><span class="tip">Live · ça bouge maintenant <kbd>3</kbd></span>
+      <span class="badge" id="b-live" hidden></span><span class="tip">Live · ça bouge maintenant <kbd>4</kbd></span>
     </button>
     <button class="nav" data-view="watch" aria-label="Watchlist">
       <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9z"/></svg>
-      <span class="badge" id="b-watch" hidden></span><span class="tip">Watchlist <kbd>4</kbd></span>
+      <span class="badge" id="b-watch" hidden></span><span class="tip">Watchlist <kbd>5</kbd></span>
     </button>
     <div class="spacer"></div>
     <button class="nav" id="theme" aria-label="Thème">
@@ -411,6 +467,10 @@ tbody tr.sel td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
         <span>Rechercher un titre, un ISIN, une action…</span><kbd>Ctrl K</kbd>
       </button>
       <div class="status">
+        <button class="pill bell" id="bell" title="Alertes : bip + notification Chrome">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+          <span id="bell-t">Alertes</span><span class="badge" id="bell-n" hidden></span>
+        </button>
         <span class="pill" title="Lang & Schwarz : 7h30 – 23h"><i class="dot" id="d-lsx"></i>LSX</span>
         <span class="pill" title="Euronext : 9h – 17h30"><i class="dot" id="d-enx"></i>Euronext</span>
         <span class="pill" title="Screener de picks">
@@ -458,6 +518,12 @@ tbody tr.sel td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
             <button class="chip" id="m-motif" aria-pressed="false" title="Seulement les titres qui, sur le mois, rebondissent d'habitude fort le lendemain d'une forte chute"><span class="ck"></span>Motif chute → rebond</button>
             <button class="chip" id="m-trous" aria-pressed="true" title="Historique TR arrêté depuis plus de 4 jours : la référence est périmée (souvent une suspension de cotation)"><span class="ck"></span>Sans historique interrompu</button>
           </div>
+          <div class="toolbar" id="tb-rebonds" hidden>
+            <div class="seg" id="r-jours"></div>
+            <span class="count-lbl" id="r-info"></span>
+            <span class="grow"></span>
+            <span class="count-lbl" id="r-ia"></span>
+          </div>
           <div class="toolbar" id="tb-live" hidden><span class="count-lbl">Titres qui ont bougé de <b>≥ 12 %</b> entre deux scans (toutes les 5 min), spread ≤ 20 %</span></div>
           <div class="toolbar" id="tb-watch" hidden><span class="count-lbl">Prix rafraîchis toutes les <b>10 s</b> · clique ☆ dans Picks ou Live pour ajouter</span></div>
 
@@ -475,10 +541,12 @@ tbody tr.sel td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
           </div>
           <div class="scroll" id="v-moves" hidden>
             <table><thead><tr>
-              <th class="rk">#</th><th class="l">Titre</th><th class="l hide-m hide-xl">30 jours</th>
-              <th id="m-th-var">Variation séance</th><th class="hide-m" id="m-th-ref">Veille</th><th>Actuel</th><th>Spread</th><th style="width:40px"></th>
+              <th class="rk">#</th><th class="l">Titre</th><th class="l hide-m hide-l" id="m-th-spark">30 jours</th>
+              <th id="m-th-var">Variation séance</th><th class="l" id="m-th-why">Pourquoi ? <span class="faint" style="text-transform:none">· IA</span></th>
+              <th class="hide-m hide-l" id="m-th-ref">Veille</th><th>Actuel</th><th>Spread</th><th style="width:40px"></th>
             </tr></thead><tbody id="t-moves"></tbody></table>
           </div>
+          <div class="scroll" id="v-rebonds" hidden><div class="rgrid" id="g-rebonds"></div></div>
           <div class="scroll" id="v-live" hidden>
             <table><thead><tr><th class="rk">#</th><th class="l">Titre</th><th>Variation</th><th>Bid</th><th class="hide-m">Précédent</th><th>Spread</th><th style="width:40px"></th></tr></thead>
             <tbody id="t-live"></tbody></table>
@@ -545,7 +613,16 @@ tbody tr.sel td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
     <kbd>Échap</kbd>
   </div>
   <div class="res" id="p-res"></div>
-  <div class="ft"><span><kbd>↑</kbd> <kbd>↓</kbd> naviguer</span><span><kbd>↵</kbd> ouvrir</span><span><kbd>1</kbd>–<kbd>4</kbd> vues</span><span><kbd>S</kbd> suivre</span><span><kbd>A</kbd> analyse IA</span><span><kbd>T</kbd> thème</span></div>
+  <div class="ft"><span><kbd>↑</kbd> <kbd>↓</kbd> naviguer</span><span><kbd>↵</kbd> ouvrir</span><span><kbd>1</kbd>–<kbd>5</kbd> vues</span><span><kbd>S</kbd> suivre</span><span><kbd>A</kbd> analyse IA</span><span><kbd>T</kbd> thème</span></div>
+</div>
+<div class="apanel" id="apanel">
+  <div class="ah"><b>Alertes</b><button class="btn" id="a-toggle">Activer</button><button class="btn" id="a-test" title="Tester le bip et la notification">Tester</button></div>
+  <div class="opts">
+    <button class="chip" data-at="chute" aria-pressed="true" title="Chute du jour ≤ −15 %"><span class="ck"></span>Chutes ≤ −15 %</button>
+    <button class="chip" data-at="rebond" aria-pressed="true" title="Chute ≥ 10 % hier puis hausse ≥ 10 % aujourd'hui"><span class="ck"></span>Rebonds</button>
+    <button class="chip" data-at="watchlist" aria-pressed="true" title="Titre de ta watchlist ≤ −10 %"><span class="ck"></span>Watchlist ≤ −10 %</button>
+  </div>
+  <div class="lst" id="a-list"></div>
 </div>
 <div class="tooltip" id="tip"></div>
 <div class="toasts" id="toasts"></div>
@@ -608,32 +685,34 @@ function basculerTheme() {
 $("#theme").onclick = basculerTheme;
 
 // ================================================================= état
-let PICKS = [], LIVE = [], WLIST = [], MOVES = [], WATCH = new Set();
+let PICKS = [], LIVE = [], WLIST = [], MOVES = [], REBONDS = [], WATCH = new Set();
 let vue = "picks", tri = { k: "score", dir: -1 }, selIsin = null, lignesVisibles = [];
 
 const VUES = {
   picks: ["Picks", "Titres qui font souvent de gros écarts dans la journée"],
   moves: ["Chutes & hausses", "Les plus gros mouvements sur la séance, 5 séances ou le mois"],
+  rebonds: ["Rebonds du jour", "Chute ≥ 10 % hier, hausse ≥ 10 % aujourd'hui · expliqués par l'IA"],
   live: ["Live", "Ce qui bouge en ce moment sur tout l'univers Trade Republic"],
   watch: ["Watchlist", "Tes titres suivis, en temps réel"],
 };
 function allerVue(v) {
   vue = v;
   $$(".nav[data-view]").forEach(b => b.classList.toggle("on", b.dataset.view === v));
-  ["picks", "moves", "live", "watch"].forEach(x => { $("#v-" + x).hidden = x !== v; $("#tb-" + x).hidden = x !== v; });
+  ["picks", "moves", "rebonds", "live", "watch"].forEach(x => { $("#v-" + x).hidden = x !== v; $("#tb-" + x).hidden = x !== v; });
   [$("#v-title").textContent, $("#v-sub").textContent] = VUES[v];
   if (v === "watch") chargerWatch();
   if (v === "moves") chargerMoves();
+  if (v === "rebonds") chargerRebonds();
   majLignesVisibles();
 }
 $$(".nav[data-view]").forEach(b => b.onclick = () => allerVue(b.dataset.view));
 
 function majLignesVisibles() {
-  const src = { picks: () => filtrer(), moves: () => movesFiltres(), live: () => LIVE, watch: () => WLIST }[vue];
+  const src = { picks: () => filtrer(), moves: () => movesFiltres(), rebonds: () => REBONDS, live: () => LIVE, watch: () => WLIST }[vue];
   lignesVisibles = src().map(l => l.isin);
 }
 
-let enCours = false;
+let enCours = false, iaEnCours = false;
 async function majEtat() {
   const e = await api("/api/etat").catch(() => null);
   if (!e) return;
@@ -664,6 +743,10 @@ async function majEtat() {
   $("#relancer").disabled = p.en_cours;
   $("#relancer span").textContent = p.en_cours ? "En cours…" : "Relancer";
   if (enCours && !p.en_cours) { chargerPicks(); chargerMoves(); toast("✓ Screener terminé"); }
+  const ia = e.ia || {};
+  $("#r-ia").textContent = ia.en_cours ? `IA : ${ia.fait}/${ia.total} titres expliqués…` : "";
+  if (iaEnCours && !ia.en_cours) { if (vue === "moves") chargerMoves(); if (vue === "rebonds") chargerRebonds(); }
+  iaEnCours = ia.en_cours;
   enCours = p.en_cours;
   const s = e.scan;
   $("#k-live-s").textContent = !s.tours ? "1er scan : relevé des prix de départ" : `scan ${ago(s.heure)} · tour ${s.tours}`;
@@ -764,6 +847,7 @@ async function chargerMoves() {
   if (!r) return;
   MOVES = r.lignes;
   [$("#m-th-var").textContent, $("#m-th-ref").textContent] = LIB[M.per];
+  $("#m-th-why").hidden = M.per !== "1j";
   if (vue === "moves") $("#v-sub").textContent =
     `${r.trouves.toLocaleString("fr-FR")} titres en ${M.sens} sur ${r.total.toLocaleString("fr-FR")} mesurés · calculé ${ago(r.heure)}`;
   rendreMoves();
@@ -781,10 +865,11 @@ function rendreMoves() {
     return `<tr data-isin="${l.isin}" class="${l.isin === selIsin ? "sel" : ""}">
       <td class="rk">${i + 1}</td>
       <td class="l">${cellNom(l)}</td>
-      <td class="l hide-m hide-xl">${spark(l.source === "live" ? [...l.clotures, l.courant] : l.clotures)}</td>
+      <td class="l hide-m hide-l">${spark(l.source === "live" ? [...l.clotures, l.courant] : l.clotures)}</td>
       <td><span class="vcell"><span class="vbar"><i style="width:${Math.max(4, Math.abs(v) / max * 100)}%;background:${col}"></i></span>
         <span class="vtxt ${v >= 0 ? "up" : "down"}">${pct(v, true)}</span></span></td>
-      <td class="num faint hide-m">${px(l[ref])}</td>
+      ${M.per === "1j" ? `<td class="whytd">${cellWhy(l)}</td>` : ""}
+      <td class="num faint hide-m hide-l">${px(l[ref])}</td>
       <td class="num" title="${l.source === "live" ? "Bid live (séance ouverte, spread serré)" : "Dernier prix de séance"}">${px(l.courant)}<span class="src ${l.source === "live" ? "live" : ""}"></span></td>
       <td>${spTag(l.spread_pct)}</td>
       <td>${etoile(l.isin)}</td>
@@ -810,6 +895,147 @@ $("#m-motif").onclick = e => { M.motif = !M.motif; e.currentTarget.setAttribute(
 ["asie", "trous"].forEach(k => $("#m-" + k).onclick = e => {
   M[k] = !M[k]; e.currentTarget.setAttribute("aria-pressed", !M[k]); chargerMoves();
 });
+
+// ======================================================== explications
+const CAT = { news: "News", secteur: "Secteur", technique: "Technique", artefact: "Artefact ?", inconnu: "Inconnu" };
+const CAT_TIP = {
+  news: "Une news datée explique le mouvement", secteur: "Tout le secteur ou le marché a bougé",
+  technique: "Aucune news : rebond ou prise de bénéfices", artefact: "Incohérent avec les news, spread large : erreur de cotation probable",
+  inconnu: "Impossible à dire avec les données disponibles",
+};
+const catTag = (e) => `<span class="cat ${e.categorie}" title="${CAT_TIP[e.categorie] || ""} · confiance ${e.confiance}">${CAT[e.categorie] || "?"}</span>`;
+function cellWhy(l) {
+  const e = l.explication;
+  if (!e) return `<button class="why-btn" data-why="${l.isin}">Pourquoi ?</button>`;
+  return `<div class="why">${catTag(e)}<span class="c" title="${esc(e.cause_jour)}">${esc(e.cause_jour || "—")}</span></div>`;
+}
+document.addEventListener("click", async e => {
+  const b = e.target.closest("[data-why]");
+  if (!b) return;
+  b.disabled = true; b.textContent = "Analyse…";
+  const r = await api("/api/expliquer/" + b.dataset.why, { method: "POST" }).catch(() => null);
+  if (!r) { b.textContent = "Erreur"; b.disabled = false; return; }
+  const l = MOVES.find(x => x.isin === b.dataset.why);
+  if (l) { l.explication = r; rendreMoves(); }
+});
+
+// ===================================================== rebonds du jour
+let rJour = null;
+async function chargerRebonds() {
+  const r = await api("/api/rebonds" + (rJour ? "?jour=" + rJour : "")).catch(() => null);
+  if (!r) return;
+  REBONDS = r.lignes;
+  if (r.jour === r.aujourd_hui) { $("#b-rebonds").hidden = !REBONDS.length; $("#b-rebonds").textContent = REBONDS.length; }
+  const jours = [...new Set([r.aujourd_hui, ...r.jours].filter(Boolean))].slice(0, 7);
+  const fmt = j => j === r.aujourd_hui ? "Aujourd'hui" : new Date(j).toLocaleDateString("fr-FR", { weekday: "short", day: "2-digit", month: "2-digit" });
+  $("#r-jours").innerHTML = jours.map(j => `<button data-j="${j}" class="${j === r.jour ? "on" : ""}">${fmt(j)}</button>`).join("");
+  $("#r-info").innerHTML = `<b>${REBONDS.length}</b> titre(s) · chute ≥ ${-r.seuils.chute_hier} % puis hausse ≥ ${r.seuils.rebond_auj} % · spread ≤ 20 %`;
+  $("#g-rebonds").innerHTML = REBONDS.length ? REBONDS.map(l => {
+    const e = l.explication;
+    return `<div class="rc ${l.isin === selIsin ? "sel" : ""}" data-isin="${l.isin}">
+      <div class="h">${avatar(l.nom, l.isin)}<div style="min-width:0;flex:1"><div style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(l.nom)}</div>
+        <div class="faint mono" style="font-size:11px">${l.isin}</div></div>${e ? catTag(e) : ""}${etoile(l.isin)}</div>
+      <div class="mv"><div><small>Hier</small><span class="down">${pct(l.var_veille, true)}</span></div><span class="arr">→</span>
+        <div><small>Aujourd'hui</small><span class="up">${pct(l.var_1j, true)}</span></div>
+        <div style="margin-left:auto;text-align:right"><small>Actuel</small><span style="font-size:16px">${px(l.courant)}</span></div></div>
+      ${e ? `<div class="why2"><span>Chute</span><span>${esc(e.cause_veille || "—")}</span><span>Rebond</span><span>${esc(e.cause_jour || "—")}</span></div>`
+          : `<div class="faint" style="font-size:12px">Explication IA en cours…</div>`}
+      <div class="foot">${spTag(l.spread_pct)}${l.hors_fuseau ? '<span class="flag asie">asie</span>' : ""}${badgeMotif(l.motif)}
+        ${e?.news?.[0] ? `<a href="${esc(e.news[0].lien)}" target="_blank" rel="noopener noreferrer" style="color:var(--accent);text-decoration:none;margin-left:auto;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">↗ ${esc(e.news[0].source)}</a>` : ""}</div>
+    </div>`;
+  }).join("") : `<div class="empty" style="grid-column:1/-1"><b>Aucun rebond ${r.jour === r.aujourd_hui ? "pour l'instant" : "ce jour-là"}</b>Aucun titre n'a chuté de ≥ 10 % la veille puis remonté de ≥ 10 %.</div>`;
+  if (vue === "rebonds") majLignesVisibles();
+}
+$("#r-jours").onclick = e => { const b = e.target.closest("button"); if (b) { rJour = b.dataset.j; chargerRebonds(); } };
+
+// ============================================================== alertes
+// Bip généré par WebAudio (pas de fichier son). Chrome n'autorise le son
+// qu'après un clic sur la page : le bouton "Activer" débloque l'AudioContext.
+const PREF = (() => { try { return JSON.parse(localStorage.alertes || "{}"); } catch { return {}; } })();
+PREF.types ??= { chute: true, rebond: true, watchlist: true };
+const sauverPref = () => { try { localStorage.alertes = JSON.stringify(PREF); } catch {} };
+let audio = null, dernierId = null, ALERTES = [];
+
+function bip(montant = true) {
+  try {
+    audio ??= new (window.AudioContext || window.webkitAudioContext)();
+    audio.resume();
+    const notes = montant ? [660, 990] : [880, 587];  // rebond : monte ; chute : descend
+    notes.forEach((f, i) => {
+      const o = audio.createOscillator(), g = audio.createGain(), t = audio.currentTime + i * 0.16;
+      o.type = "sine"; o.frequency.value = f;
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.2, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.14);
+      o.connect(g).connect(audio.destination); o.start(t); o.stop(t + 0.15);
+    });
+  } catch {}
+}
+// Après un rechargement, Chrome bloque le son jusqu'au premier clic/touche : on le réarme au premier geste.
+["click", "keydown"].forEach(ev => addEventListener(ev, () => { if (PREF.on && audio?.state === "suspended") audio.resume(); }, { once: true }));
+
+function notifier(a) {
+  const titre = a.type === "rebond" ? `↗ Rebond : ${a.nom}` : a.type === "watchlist" ? `★ Watchlist en chute : ${a.nom}` : `↘ Forte chute : ${a.nom}`;
+  const corps = a.type === "rebond" ? `Hier ${pct(a.var_veille, true)} → aujourd'hui ${pct(a.var_1j, true)}\n${a.cause || ""}` : `${pct(a.var_1j, true)} · ${a.cause || "cause inconnue"}`;
+  if ("Notification" in window && Notification.permission === "granted") {
+    const n = new Notification(titre, { body: corps, tag: a.cle, requireInteraction: false });
+    n.onclick = () => { window.focus(); selectionner(a.isin); n.close(); };
+  }
+  toast(`<b>${esc(titre)}</b><br><span class="muted">${esc(a.cause || "")}</span>`);
+}
+
+function rendreAlertes() {
+  const lu = PREF.lu || 0, nonLus = ALERTES.filter(a => a.id > lu && PREF.types[a.type]).length;
+  $("#bell-n").hidden = !nonLus; $("#bell-n").textContent = nonLus;
+  $("#bell").classList.toggle("on", !!PREF.on);
+  $("#bell-t").textContent = PREF.on ? "Alertes on" : "Alertes";
+  $("#a-toggle").textContent = PREF.on ? "Désactiver" : "Activer";
+  $("#a-toggle").className = "btn" + (PREF.on ? "" : " primary");
+  $$("#apanel [data-at]").forEach(c => c.setAttribute("aria-pressed", !!PREF.types[c.dataset.at]));
+  const liste = ALERTES.filter(a => PREF.types[a.type]);
+  $("#a-list").innerHTML = liste.length ? liste.map(a => `<div class="al ${a.id > lu ? "new" : ""}" data-alert="${a.isin}">
+      <div class="ic ${a.type}">${a.type === "rebond" ? "↗" : a.type === "watchlist" ? "★" : "↘"}</div>
+      <div><div class="t1"><b>${esc(a.nom)}</b><span class="num ${a.var_1j >= 0 ? "up" : "down"}">${a.type === "rebond" ? pct(a.var_veille, true) + " → " : ""}${pct(a.var_1j, true)}</span></div>
+        <div class="t2">${a.categorie ? catTag(a) + " " : ""}${esc(a.cause || "")}</div>
+        <div class="t3">${new Date(a.heure).toLocaleString("fr-FR", { weekday: "short", hour: "2-digit", minute: "2-digit" })}</div></div></div>`).join("")
+    : `<div class="empty" style="padding:30px"><b>Aucune alerte</b>Elles arrivent après chaque passage du screener (toutes les 15 min en séance).</div>`;
+}
+
+async function verifierAlertes() {
+  const r = await api("/api/alertes?depuis=0").catch(() => null);
+  if (!r) return;
+  ALERTES = r.alertes.map(a => ({ ...a, confiance: a.confiance || "?" }));
+  // 1er chargement : on part du dernier id connu, sans notifier l'historique
+  if (dernierId === null) dernierId = PREF.vu ?? r.dernier_id;
+  const nouvelles = ALERTES.filter(a => a.id > dernierId && PREF.types[a.type]).reverse();
+  if (nouvelles.length && PREF.on) {
+    bip(nouvelles.some(a => a.type === "rebond"));
+    $("#bell").classList.remove("ring"); void $("#bell").offsetWidth; $("#bell").classList.add("ring");
+    // au-delà de 3 d'un coup, une seule notification groupée
+    if (nouvelles.length > 3) notifier({ type: "chute", cle: "groupe" + r.dernier_id, nom: `${nouvelles.length} nouvelles alertes`, var_1j: null,
+      cause: nouvelles.slice(0, 3).map(a => `${a.nom} ${pct(a.var_1j, true)}`).join(" · "), isin: nouvelles[0].isin });
+    else nouvelles.forEach(notifier);
+  }
+  dernierId = r.dernier_id; PREF.vu = dernierId; sauverPref();
+  rendreAlertes();
+}
+
+function ouvrirAlertes() {
+  $("#apanel").classList.toggle("open");
+  if ($("#apanel").classList.contains("open")) { PREF.lu = dernierId; sauverPref(); setTimeout(rendreAlertes, 1500); }
+}
+$("#bell").onclick = e => { e.stopPropagation(); ouvrirAlertes(); };
+document.addEventListener("click", e => { if (!e.target.closest("#apanel, #bell")) $("#apanel").classList.remove("open"); });
+$("#a-toggle").onclick = async () => {
+  PREF.on = !PREF.on;
+  if (PREF.on) {
+    bip(true);  // ce clic débloque le son pour la session
+    if ("Notification" in window && Notification.permission === "default") await Notification.requestPermission();
+    if ("Notification" in window && Notification.permission === "denied") toast("Notifications bloquées par Chrome : autorise-les via l'icône 🔒 de la barre d'adresse (le bip reste actif).");
+  }
+  sauverPref(); rendreAlertes();
+};
+$("#a-test").onclick = () => { bip(false); notifier({ type: "chute", cle: "test" + Date.now(), nom: "Test", var_1j: -18.4, cause: "Ceci est une alerte de test.", isin: selIsin || "" }); };
+$$("#apanel [data-at]").forEach(c => c.onclick = () => { PREF.types[c.dataset.at] = !PREF.types[c.dataset.at]; sauverPref(); rendreAlertes(); });
+$("#a-list").onclick = e => { const a = e.target.closest("[data-alert]"); if (a) { $("#apanel").classList.remove("open"); selectionner(a.dataset.alert); } };
 
 // ================================================================= live
 async function chargerLive() {
@@ -891,13 +1117,14 @@ function rendreTape() {
 document.addEventListener("click", e => {
   const st = e.target.closest("[data-star]");
   if (st) { e.stopPropagation(); basculerSuivi(st.dataset.star); return; }
-  const row = e.target.closest("tr[data-isin], .wc[data-isin], .tick[data-isin]");
+  if (e.target.closest("[data-why], a, #apanel, #bell")) return;
+  const row = e.target.closest("tr[data-isin], .wc[data-isin], .rc[data-isin], .tick[data-isin]");
   if (row) selectionner(row.dataset.isin);
 });
 
 function marquerSel() {
-  $$("tr.sel, .wc.sel").forEach(r => r.classList.remove("sel"));
-  $$(`tr[data-isin="${selIsin}"], .wc[data-isin="${selIsin}"]`).forEach(r => r.classList.add("sel"));
+  $$("tr.sel, .wc.sel, .rc.sel").forEach(r => r.classList.remove("sel"));
+  $$(`tr[data-isin="${selIsin}"], .wc[data-isin="${selIsin}"], .rc[data-isin="${selIsin}"]`).forEach(r => r.classList.add("sel"));
   $(`#v-${vue} [data-isin="${selIsin}"]`)?.scrollIntoView({ block: "nearest" });
 }
 function selectionner(isin) { selIsin = isin; marquerSel(); ouvrirFiche(isin); }
@@ -953,7 +1180,7 @@ async function ouvrirFiche(isin) {
   $("#d-empty").hidden = true; $("#d-body").hidden = false; $("#detail").classList.add("open");
   $("#chartbox").classList.add("loading");
   if (!fiche || fiche.isin !== isin) {
-    const connu = PICKS.find(l => l.isin === isin) || MOVES.find(l => l.isin === isin) || LIVE.find(l => l.isin === isin) || WLIST.find(l => l.isin === isin);
+    const connu = PICKS.find(l => l.isin === isin) || MOVES.find(l => l.isin === isin) || REBONDS.find(l => l.isin === isin) || LIVE.find(l => l.isin === isin) || WLIST.find(l => l.isin === isin);
     $("#d-nom").textContent = connu?.nom || "Chargement…"; $("#d-meta").textContent = isin;
     $("#d-av").outerHTML = avatar(connu?.nom || "?", isin, "d-av");
   }
@@ -1125,8 +1352,10 @@ const ACTIONS = [
   { t: "Aller aux Picks", k: "1", f: () => allerVue("picks") },
   { t: "Grandes chutes du jour", k: "2", f: () => { allerVue("moves"); choisirMoves("baisse", "1j"); } },
   { t: "Grandes hausses du jour", k: "", f: () => { allerVue("moves"); choisirMoves("hausse", "1j"); } },
-  { t: "Aller au Live", k: "3", f: () => allerVue("live") },
-  { t: "Aller à la Watchlist", k: "4", f: () => allerVue("watch") },
+  { t: "Rebonds du jour (chute hier, hausse aujourd'hui)", k: "3", f: () => allerVue("rebonds") },
+  { t: "Aller au Live", k: "4", f: () => allerVue("live") },
+  { t: "Aller à la Watchlist", k: "5", f: () => allerVue("watch") },
+  { t: "Ouvrir les alertes", k: "", f: () => ouvrirAlertes() },
   { t: "Relancer le screener", k: "", f: () => $("#relancer").click() },
   { t: "Analyser le titre sélectionné avec l'IA", k: "A", f: () => fiche && lancerIA(fiche.isin) },
   { t: "Basculer le thème clair / sombre", k: "T", f: basculerTheme },
@@ -1179,8 +1408,9 @@ document.addEventListener("keydown", e => {
   if (e.key === "/") { e.preventDefault(); ouvrirPalette(); }
   else if (e.key === "1") allerVue("picks");
   else if (e.key === "2") allerVue("moves");
-  else if (e.key === "3") allerVue("live");
-  else if (e.key === "4") allerVue("watch");
+  else if (e.key === "3") allerVue("rebonds");
+  else if (e.key === "4") allerVue("live");
+  else if (e.key === "5") allerVue("watch");
   else if (e.key.toLowerCase() === "t") basculerTheme();
   else if (e.key.toLowerCase() === "s" && selIsin) basculerSuivi(selIsin);
   else if (e.key.toLowerCase() === "a" && fiche) lancerIA(fiche.isin);
@@ -1206,6 +1436,9 @@ document.addEventListener("keydown", e => {
 })();
 setInterval(majEtat, 3000);
 setInterval(chargerLive, 15000);
+verifierAlertes(); setInterval(verifierAlertes, 20000);
+setInterval(() => { if (vue === "rebonds") chargerRebonds(); }, 60000);
+chargerRebonds();
 setInterval(() => { if (vue === "moves") chargerMoves(); }, 60000);
 setInterval(() => { if (vue === "watch" || !$("#tape").hidden) chargerWatch(); }, 10000);
 </script>

@@ -18,6 +18,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 
 import analyste
+import explications
 import picks
 import scan
 from tr_client import fetch_many_history, fetch_many_tickers, fetch_one
@@ -30,7 +31,10 @@ NOMS = charger_isins()  # 11k noms en memoire : la recherche ne touche pas le re
 @asynccontextmanager
 async def lifespan(_app):
     # Remplace @app.on_event("startup"), deprecie dans FastAPI.
-    taches = [asyncio.create_task(scan.boucle_scan()), asyncio.create_task(picks.boucle_picks())]
+    picks.APRES_TOUR[:] = [explications.tour_explications]
+    taches = [asyncio.create_task(scan.boucle_scan()), asyncio.create_task(picks.boucle_picks()),
+              # au demarrage, explique deja ce qui peut l'etre avec le dernier tour sur disque
+              asyncio.create_task(explications.tour_explications())]
     yield
     for t in taches:
         t.cancel()
@@ -65,6 +69,7 @@ def etat():
         "seance": seance(),
         "scan": {k: scan.DERNIER_SCAN.get(k) for k in ("heure", "en_cours", "tours", "erreur")},
         "picks": picks.ETAT,
+        "ia": explications.ETAT,
         "univers": len(NOMS),
     }
 
@@ -105,7 +110,12 @@ def route_mouvements(periode: str = "1j", sens: str = "baisse", spread_max: floa
               and (not motif or (l.get("motif") or {}).get("motif"))
               and (l[cle] < 0 if sens == "baisse" else l[cle] > 0)]
     lignes.sort(key=lambda l: l[cle], reverse=(sens == "hausse"))
-    return {"heure": data["heure"], "total": len(data["lignes"]), "trouves": len(lignes), "lignes": lignes[:limite]}
+    trouves = len(lignes)
+    lignes = lignes[:limite]
+    if periode == "1j" and lignes:  # les explications portent sur le mouvement du jour
+        expl = explications.charger(lignes[0]["date_jour"])
+        lignes = [{**l, "explication": expl.get(l["isin"])} for l in lignes]
+    return {"heure": data["heure"], "total": len(data["lignes"]), "trouves": trouves, "lignes": lignes}
 
 
 # ------------------------------------------------------------------ live
@@ -215,6 +225,30 @@ async def route_analyse(isin: str, force: bool = False):
     """News (Google News) + motif chute->rebond + resume par le LLM de .env.
     Cache 1 h par titre ; force=true pour relancer."""
     return await analyste.analyser(isin, NOMS.get(isin, isin), force=force)
+
+
+@app.post("/api/expliquer/{isin}")
+async def route_expliquer(isin: str):
+    """Bouton "Pourquoi ?" : explique le mouvement du jour d'un titre (force)."""
+    l = next((l for l in picks.charger_mouvements()["lignes"] if l["isin"] == isin), None)
+    if l is None or l.get("var_1j") is None:
+        raise HTTPException(404, "pas de variation du jour pour ce titre")
+    veille = (l.get("var_veille") or 0) <= explications.CHUTE_HIER
+    return await explications.expliquer(l, avec_veille=veille, force=True)
+
+
+@app.get("/api/alertes")
+def route_alertes(depuis: int = 0):
+    """Alertes plus recentes que l'id `depuis` (le navigateur garde le dernier vu)."""
+    a = explications.charger_alertes()
+    return {"dernier_id": a[-1]["id"] if a else 0,
+            "alertes": [x for x in reversed(a) if x["id"] > depuis][:50]}
+
+
+@app.get("/api/rebonds")
+def route_rebonds(jour: str | None = None):
+    """Chute >= 10 % hier puis hausse >= 10 % aujourd'hui, avec l'explication IA."""
+    return {**explications.rapport_rebonds(jour), "jours": explications.jours_disponibles()}
 
 
 @app.get("/api/recherche")

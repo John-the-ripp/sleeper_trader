@@ -52,6 +52,9 @@ LOT = 250               # ISIN par connexion websocket
 PARALLELE = 6           # lots traites en meme temps
 
 ETAT: dict = {"en_cours": False, "progression": 0, "total": 0, "erreur": None}
+# Taches a lancer apres chaque tour (enregistrees par main.py : ex. les
+# explications IA). Evite que picks importe explications, qui importe picks.
+APRES_TOUR: list = []
 
 
 def en_seance(t: datetime) -> bool:
@@ -214,8 +217,14 @@ def variations(jours: list[dict], bid: float, spread: float, maintenant: datetim
     ref_1j = passes[-1]["cloture"] if trou <= 4 else None
     ref_5j = passes[-5]["cloture"] if len(passes) >= 5 else None
     ref_1m = jours[0]["cloture"]
+    # Variation de la VEILLE (seance precedente vs celle d'avant) : sert au
+    # rapport "chute hier -> rebond aujourd'hui" (rebonds.py).
+    var_veille = None
+    if ref_1j is not None and len(passes) >= 2 and passes[-2]["cloture"] >= PLANCHER:
+        var_veille = round((ref_1j - passes[-2]["cloture"]) / passes[-2]["cloture"] * 100, 1)
     return {
         "courant": courant, "source": "live" if live else "seance", "trou_jours": trou,
+        "date_jour": aujourd_hui if live else jours[-1]["date"], "var_veille": var_veille,
         "ref_1j": ref_1j, "var_1j": var(ref_1j), "date_1j": passes[-1]["date"],
         "ref_5j": ref_5j, "var_5j": var(ref_5j),
         "ref_1m": ref_1m, "var_1m": var(ref_1m),
@@ -330,8 +339,11 @@ async def lancer(seuil: float = SEUIL_PIC) -> None:
         await un_tour_picks(seuil)
     except Exception as exc:
         ETAT["erreur"] = f"{type(exc).__name__}: {exc}"
+        return
     finally:
         ETAT["en_cours"] = False
+    for tache in APRES_TOUR:
+        asyncio.create_task(tache())
 
 
 async def boucle_picks() -> None:

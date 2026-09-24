@@ -8,3 +8,6 @@ watchlist.json
 .omc/
 mouvements.json
 isins_cache_*.json
+explications/
+alertes.json
+alertes.json
