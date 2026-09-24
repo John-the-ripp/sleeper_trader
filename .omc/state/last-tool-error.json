@@ -1,7 +1,0 @@
-{
-  "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"git status 2>&1\",\"description\":\"Check if the project has version control set up\"}",
-  "error": "Exit code 128\nfatal: not a git repository (or any of the parent directories): .git",
-  "timestamp": "2026-09-23T15:01:26.168Z",
-  "retry_count": 1
-}

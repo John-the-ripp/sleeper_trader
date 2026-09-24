@@ -201,7 +201,28 @@ async def fetch_one(coro_factory, locale: str = "fr", timeout: float = 20.0):
         await tr.close()
 
 
-async def fetch_many_tickers(isins, exchange: str = "LSX", locale: str = "fr", timeout: float = 25.0) -> dict:
+async def _attendre(done: asyncio.Event, recu: list, timeout: float, idle: float) -> None:
+    """Attend que tout le lot ait repondu, ou `timeout` au total, ou `idle`
+    secondes sans AUCUNE nouvelle reponse (apres au moins une).
+
+    Pourquoi `idle` : dans presque chaque lot de 250, quelques ISIN ne
+    repondent jamais. Sans ca, chaque lot attendait son timeout complet
+    (30 s) alors que 98 % des reponses arrivent en ~2 s."""
+    debut = time.monotonic()
+    while not done.is_set():
+        maintenant = time.monotonic()
+        if maintenant - debut >= timeout:
+            return
+        if recu[0] and maintenant - recu[0] >= idle:
+            return
+        try:
+            await asyncio.wait_for(done.wait(), timeout=0.25)
+        except asyncio.TimeoutError:
+            pass
+
+
+async def fetch_many_tickers(isins, exchange: str = "LSX", locale: str = "fr", timeout: float = 25.0,
+                             idle: float = 3.0) -> dict:
     """Récupère le ticker de plusieurs ISIN sur UNE SEULE connexion websocket.
 
     Bien plus léger qu'un `fetch_one` par ISIN : une connexion pour tout le lot
@@ -212,10 +233,12 @@ async def fetch_many_tickers(isins, exchange: str = "LSX", locale: str = "fr", t
     results: dict[str, dict | None] = {isin: None for isin in isins}
     pending = set(isins)
     done = asyncio.Event()
+    recu = [0.0]  # instant de la derniere reponse (liste = modifiable depuis le callback)
 
     def make_cb(isin: str):
         def cb(payload):
             results[isin] = payload
+            recu[0] = time.monotonic()
             pending.discard(isin)
             if not pending:
                 done.set()
@@ -228,9 +251,7 @@ async def fetch_many_tickers(isins, exchange: str = "LSX", locale: str = "fr", t
 
         loop_task = asyncio.create_task(tr.start())
         try:
-            await asyncio.wait_for(done.wait(), timeout=timeout)
-        except asyncio.TimeoutError:
-            pass
+            await _attendre(done, recu, timeout, idle)
         finally:
             loop_task.cancel()
     finally:
@@ -240,7 +261,8 @@ async def fetch_many_tickers(isins, exchange: str = "LSX", locale: str = "fr", t
 
 
 async def fetch_many_history(
-    isins, range: str = "5d", exchange: str = "LSX", locale: str = "fr", timeout: float = 25.0
+    isins, range: str = "5d", exchange: str = "LSX", locale: str = "fr", timeout: float = 25.0,
+    idle: float = 3.0,
 ) -> dict:
     """Comme `fetch_many_tickers`, mais pour `aggregateHistoryLight` (une
     connexion pour tout le lot). Rend `{isin: payload_ou_None}`.
@@ -249,10 +271,12 @@ async def fetch_many_history(
     results: dict[str, dict | None] = {isin: None for isin in isins}
     pending = set(isins)
     done = asyncio.Event()
+    recu = [0.0]  # instant de la derniere reponse (liste = modifiable depuis le callback)
 
     def make_cb(isin: str):
         def cb(payload):
             results[isin] = payload
+            recu[0] = time.monotonic()
             pending.discard(isin)
             if not pending:
                 done.set()
@@ -265,9 +289,7 @@ async def fetch_many_history(
 
         loop_task = asyncio.create_task(tr.start())
         try:
-            await asyncio.wait_for(done.wait(), timeout=timeout)
-        except asyncio.TimeoutError:
-            pass
+            await _attendre(done, recu, timeout, idle)
         finally:
             loop_task.cancel()
     finally:

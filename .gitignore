@@ -3,3 +3,8 @@ __pycache__/
 *.pyc
 tr_session.json
 .env
+picks.json
+watchlist.json
+.omc/
+mouvements.json
+isins_cache_*.json
