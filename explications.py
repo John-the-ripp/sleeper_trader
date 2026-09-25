@@ -201,11 +201,11 @@ def charger_alertes() -> list[dict]:
         return []
 
 
-def alerter(type_: str, l: dict, e: dict) -> None:
+def alerter(type_: str, l: dict, e: dict, cle: str | None = None) -> None:
     """Ajoute une alerte (une seule par type, titre et jour). Le navigateur
     les recupere via /api/alertes et bipe pour chaque nouvel id."""
     alertes = charger_alertes()
-    cle = f"{type_}:{l['isin']}:{l['date_jour']}"
+    cle = cle or f"{type_}:{l['isin']}:{l['date_jour']}"
     if any(a["cle"] == cle for a in alertes):
         return
     alertes.append({
@@ -216,6 +216,53 @@ def alerter(type_: str, l: dict, e: dict) -> None:
         "heure": datetime.now(picks.PARIS).isoformat(timespec="seconds"),
     })
     FICHIER_ALERTES.write_text(json.dumps(alertes[-300:], ensure_ascii=False), encoding="utf-8")
+
+
+async def journal_cotes() -> None:
+    """Bid/ask des titres DOWN/UP et de la watchlist a chaque tour : pour savoir, dans
+    quelques semaines, si l'ASK decroche aussi quand le bid LSX chute."""
+    import origine
+    suivis = set(_watchlist())
+    lignes = [l for l in picks.charger_downup()["lignes"] if l["downup"] or l["isin"] in suivis]
+    await asyncio.to_thread(origine.journaliser, lignes)
+
+
+async def prechauffer_origine() -> None:
+    """Ecart LSX / vrai marche des titres type Anoto + watchlist, calcule a l'avance."""
+    import origine
+    suivis = set(_watchlist())
+    isins = [l["isin"] for l in picks.charger_downup()["lignes"] if l["downup"]] + list(suivis)
+    await asyncio.to_thread(origine.prechauffer, list(dict.fromkeys(isins)))
+
+
+async def alertes_downup() -> None:
+    """Apres chaque tour : un titre DOWN/UP (type Anoto) qui vient de faire une
+    grosse chute pas encore rachetee = le moment que guette ce motif."""
+    data = picks.charger_downup()
+    jour = datetime.now(picks.PARIS).date().isoformat()
+    for l in data["lignes"]:
+        if not (l["downup"] and l["en_phase_down"] and l["spread_pct"] <= 20):
+            continue
+        c = l["detail"][-1]
+        message = (f"Chute {c['chute']:+.0f} % pas encore rachetée · historique {l['reussis']}/{l['cycles']} rebonds "
+                   f"(moy. {l['rebond_moy']:+.0f} % en {l['delai_moy']:g} séance(s))")
+        alerter("downup", {"isin": l["isin"], "nom": l["nom"], "date_jour": jour, "var_1j": c["chute"],
+                           "var_veille": None, "courant": l["bid"]},
+                {"categorie": None, "cause_jour": message, "cause_veille": None})
+
+
+async def alertes_plancher() -> None:
+    """Un titre en range revient toucher son plancher = zone d'achat du range."""
+    import simulateur  # import local : evite une boucle d'imports au demarrage
+    jour = datetime.now(picks.PARIS).date().isoformat()
+    for l in simulateur.ranges(spread_max=20)["lignes"]:
+        if not l["pres_du_plancher"] or l["gain_cycle_pct"] <= 0:
+            continue
+        message = (f"Au plancher {l['plancher']:g} € ({l['reussis']}/{l['testes']} rebonds, moy. +{l['rebond_moy']:g} %) · "
+                   f"plafond {l['plafond']:g} € · gain net par cycle ≈ {l['gain_cycle_pct']:+g} % après spread")
+        alerter("plancher", {"isin": l["isin"], "nom": l["nom"], "date_jour": jour, "var_1j": l["distance_pct"],
+                             "var_veille": None, "courant": l["bid"]},
+                {"categorie": None, "cause_jour": message, "cause_veille": None})
 
 
 def rapport_rebonds(jour: str | None = None) -> dict:

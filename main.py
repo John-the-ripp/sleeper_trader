@@ -11,18 +11,26 @@ interrogent TR a la demande (quelques ISIN, ~1-2 s)."""
 
 import asyncio
 import json
+import time
 from contextlib import asynccontextmanager
 from datetime import datetime
 
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import FileResponse, StreamingResponse
+from pydantic import BaseModel
 
 import analyste
+import live
+import origine
 import explications
 import picks
+import recommandations
+import regles
+import paper
+import simulateur
 import scan
-from tr_client import fetch_many_history, fetch_many_tickers, fetch_one
-from tr_data import BASE, charger_isins
+from tr_client import fetch_one
+from tr_data import BASE, charger_isins, historiques, place, tickers
 
 WATCHLIST = BASE / "watchlist.json"
 NOMS = charger_isins()  # 11k noms en memoire : la recherche ne touche pas le reseau
@@ -31,10 +39,14 @@ NOMS = charger_isins()  # 11k noms en memoire : la recherche ne touche pas le re
 @asynccontextmanager
 async def lifespan(_app):
     # Remplace @app.on_event("startup"), deprecie dans FastAPI.
-    picks.APRES_TOUR[:] = [explications.tour_explications]
+    picks.APRES_TOUR[:] = [explications.tour_explications, explications.alertes_downup, explications.alertes_plancher,
+                           recommandations.calculer, explications.journal_cotes, explications.prechauffer_origine]
     taches = [asyncio.create_task(scan.boucle_scan()), asyncio.create_task(picks.boucle_picks()),
               # au demarrage, explique deja ce qui peut l'etre avec le dernier tour sur disque
-              asyncio.create_task(explications.tour_explications())]
+              asyncio.create_task(explications.tour_explications()),
+              asyncio.create_task(regles.boucle_regles()),
+              asyncio.create_task(live.boucle()),
+              asyncio.create_task(explications.prechauffer_origine())]  # cache LSX/origine des le demarrage
     yield
     for t in taches:
         t.cancel()
@@ -139,7 +151,7 @@ async def route_watchlist():
     isins = lire_watchlist()
     if not isins:
         return {"lignes": []}
-    live = await fetch_many_tickers(isins, timeout=8)
+    live = await tickers(isins, timeout=8)
     par_isin = {l["isin"]: l for l in picks.charger_dernier()["lignes"]}
     lignes = []
     for isin in isins:
@@ -192,8 +204,8 @@ async def route_action(isin: str, range: str = "1m"):
 
     info, live, hist = await asyncio.gather(
         instrument(),
-        fetch_many_tickers([isin], timeout=8),
-        fetch_many_history([isin], range=range, timeout=10),
+        tickers([isin], timeout=8),
+        historiques([isin], range=range, timeout=10),
     )
     t = live.get(isin) or {}
     bougies = []
@@ -217,6 +229,7 @@ async def route_action(isin: str, range: str = "1m"):
         "bougies": bougies,
         "pick": pick,
         "suivi": isin in lire_watchlist(),
+        "place": place(isin),  # LSX (Lang & Schwarz) ou TDG (Tradegate)
     }
 
 
@@ -245,10 +258,189 @@ def route_alertes(depuis: int = 0):
             "alertes": [x for x in reversed(a) if x["id"] > depuis][:50]}
 
 
+# --------------------------------------------------- alertes personnalisees
+
+class Regle(BaseModel):
+    isin: str
+    type: str   # var_bas | var_haut | prix_bas | prix_haut
+    seuil: float
+
+
+@app.get("/api/regles")
+def route_regles():
+    return {"regles": [{**r, "libelle": regles.libelle(r), "cours": regles.ETAT["cours"].get(r["isin"])} for r in regles.charger()],
+            "heure": regles.ETAT["heure"], "actif": regles.ETAT["actif"], "etendu": regles.config().get("etendu", False)}
+
+
+@app.post("/api/regles/config")
+def config_regles(etendu: bool):
+    """etendu=true : surveille 7h30-23h (heures LSX) au lieu de 9h-17h30."""
+    c = regles.regler(etendu)
+    regles.ETAT["actif"] = regles.surveille(datetime.now(picks.PARIS))
+    return c
+
+
+@app.post("/api/regles")
+async def creer_regle(r: Regle):
+    try:
+        cree = regles.ajouter(r.isin, NOMS.get(r.isin, r.isin), r.type, r.seuil)
+    except ValueError as exc:
+        raise HTTPException(400, str(exc))
+    if regles.ETAT["actif"]:
+        asyncio.create_task(regles.verifier())  # verifie tout de suite, sans attendre 30 s
+    return cree
+
+
+@app.delete("/api/regles/{id_}")
+def supprimer_regle(id_: int):
+    regles.supprimer(id_)
+    return {"ok": True}
+
+
+@app.post("/api/regles/{id_}/rearmer")
+def rearmer_regle(id_: int):
+    regles.rearmer(id_)
+    return {"ok": True}
+
+
+# ------------------------------------------------------------- simulateur
+
+@app.get("/api/simulation")
+def route_simulation(montant: float = 1000, chute: float = 20, cible: float = 15, duree: int = 5, stop: float = 0,
+                     spread_max: float = 20, asie: bool = False, liquide: bool = False):
+    """Rejoue "achat a l'ask apres une chute, revente au bid" sur tout l'univers."""
+    p = {"montant": montant, "chute": chute, "cible": cible, "duree": max(1, min(duree, 20)), "stop": stop}
+    return simulateur.classement(p, spread_max=spread_max, asie=asie, liquide=liquide)
+
+
+@app.get("/api/simuler/{isin}")
+def route_simuler(isin: str, montant: float = 1000, chute: float = 20, cible: float = 15, duree: int = 5, stop: float = 0):
+    t = simulateur.charger_series()["titres"].get(isin)
+    if not t:
+        raise HTTPException(404, "pas de donnees de seance pour ce titre (prix trop bas, spread > 50 % ou historique court)")
+    r = simulateur.backtest(t["j"], t["spread"], montant=montant, chute=chute, cible=cible, duree=max(1, min(duree, 20)), stop=stop)
+    return {**r, "spread_pct": t["spread"], "ask": t["ask"], "bid": t["bid"], "dispo_ask": round(t["ask"] * (t.get("ask_size") or 0)),
+            "jours": len(t["j"]), "du": t["j"][0][0], "au": t["j"][-1][0]}
+
+
+# --------------------------------------------------- positions fictives
+
+class Achat(BaseModel):
+    isin: str
+    montant: float = 1000
+
+
+@app.get("/api/paper")
+async def route_paper():
+    return await paper.etat()
+
+
+@app.post("/api/paper/acheter")
+async def paper_acheter(a: Achat):
+    try:
+        return await paper.acheter(a.isin, NOMS.get(a.isin, a.isin), a.montant)
+    except ValueError as exc:
+        raise HTTPException(400, str(exc))
+
+
+@app.post("/api/paper/{id_}/vendre")
+async def paper_vendre(id_: int):
+    try:
+        return await paper.vendre(id_)
+    except ValueError as exc:
+        raise HTTPException(400, str(exc))
+
+
+@app.delete("/api/paper/{id_}")
+def paper_supprimer(id_: int):
+    paper.supprimer(id_)
+    return {"ok": True}
+
+
+# -------------------------------------------------------- recommandations
+
+@app.get("/api/recommandations")
+async def route_recommandations():
+    r = recommandations.charger()
+    if r["heure"] is None:  # jamais calcule : on le fait tout de suite (~5 s)
+        r = await recommandations.calculer()
+    return r
+
+
+# ------------------------------------------------ rebond sur plancher
+
+@app.get("/api/ranges")
+def route_ranges(spread_max: float = 20, asie: bool = False, montant: float = 1000, rentables: bool = True):
+    r = simulateur.ranges(spread_max=spread_max, asie=asie, montant=montant)
+    if rentables:  # un range plus etroit que le spread ne rapporte rien
+        r["lignes"] = [l for l in r["lignes"] if l["gain_cycle_pct"] > 0]
+    # + les titres type Anoto (DOWN/UP) qui chutent ET rebondissent de >= 20 % : categorie gold aussi
+    deja = {l["isin"] for l in r["lignes"]}
+    r["anoto_like"] = [
+        {**d, "categorie": "gold" if d["reussis"] >= 3 else "gold_nc", "origine": origine.resume(d["isin"])}
+        for d in picks.charger_downup()["lignes"]
+        if d["downup"] and (d["rebond_moy"] or 0) >= simulateur.GOLD and (d["chute_moy"] or 0) <= -simulateur.GOLD
+        and d["spread_pct"] <= spread_max and (asie or not d["hors_fuseau"]) and d["isin"] not in deja
+    ]
+    return r
+
+
+# ------------------------------------------------------- DOWN/UP Anoto-like
+
+@app.get("/api/downup")
+def route_downup(spread_max: float = 20, asie: bool = False, tous: bool = False):
+    """tous=false : seulement les titres classes DOWN/UP (>= 2 cycles, >= 66 %).
+    Les titres en phase DOWN (chute pas encore rachetee) passent en tete."""
+    data = picks.charger_downup()
+    lignes = [l for l in data["lignes"] if l["spread_pct"] <= spread_max and (asie or not l["hors_fuseau"])
+              and (tous or l["downup"])]
+    lignes.sort(key=lambda l: (not (l["downup"] and l["en_phase_down"]), -l["reussis"], -(l["taux"] or 0)))
+    return {"heure": data["heure"], "total": len(data["lignes"]), "lignes": lignes[:300]}
+
+
 @app.get("/api/rebonds")
 def route_rebonds(jour: str | None = None):
     """Chute >= 10 % hier puis hausse >= 10 % aujourd'hui, avec l'explication IA."""
     return {**explications.rapport_rebonds(jour), "jours": explications.jours_disponibles()}
+
+
+@app.get("/api/flux/{isin}")
+async def flux(isin: str, request: Request):
+    """Server-Sent Events : la page recoit chaque changement de bid/ask du titre
+    en moins d'une seconde, tant que la fiche est ouverte."""
+    async def evenements():
+        live.ajouter(isin)
+        vu, dernier_envoi, debut = -1, time.time(), time.time()
+        try:
+            # Duree de vie limitee a 30 s : le navigateur (EventSource) se reconnecte tout seul
+            # en 1-3 s. Sans ca, `uvicorn --reload` attend la fermeture de ce flux infini avant
+            # de redemarrer et le serveur reste bloque tant qu'une fiche est ouverte.
+            yield "retry: 1000\n\n"
+            while time.time() - debut < 30 and not await request.is_disconnected():
+                c = live.COURS.get(isin)
+                if c and c["seq"] != vu:
+                    vu, dernier_envoi = c["seq"], time.time()
+                    yield f"data: {json.dumps(c)}\n\n"
+                elif time.time() - dernier_envoi > 15:
+                    dernier_envoi = time.time()
+                    yield ": ping\n\n"  # garde la connexion ouverte (proxys, navigateur)
+                await asyncio.sleep(0.25)
+        finally:
+            live.retirer(isin)
+    return StreamingResponse(evenements(), media_type="text/event-stream",
+                             headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+
+
+@app.get("/api/origine/{isin}")
+async def route_origine(isin: str):
+    """LSX vs vrai marche (yfinance, en EUR) : ecart, decrochages, rattrapages, verdict."""
+    return await asyncio.to_thread(origine.comparer, isin)
+
+
+@app.get("/api/prevision/{isin}")
+async def route_prevision(isin: str):
+    """Risque de decrochage du bid LSX par heure et jour de semaine."""
+    return await origine.prevision(isin)
 
 
 @app.get("/api/recherche")

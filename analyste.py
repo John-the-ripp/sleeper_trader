@@ -23,8 +23,7 @@ from dotenv import load_dotenv
 import motifs
 import news
 import picks
-from tr_client import fetch_many_history, fetch_many_tickers
-from tr_data import BASE
+from tr_data import BASE, historiques, tickers
 
 load_dotenv(BASE / ".env")
 
@@ -95,8 +94,8 @@ async def analyser(isin: str, nom: str, force: bool = False) -> dict:
 
     # TR (async) et Google News (bloquant -> thread) en parallele
     hist, live, articles = await asyncio.gather(
-        fetch_many_history([isin], range="1m", timeout=10),
-        fetch_many_tickers([isin], timeout=8),
+        historiques([isin], range="1m", timeout=10),
+        tickers([isin], timeout=8),
         asyncio.to_thread(news.chercher, nom),
     )
     jours = picks.jours_depuis_bougies((hist.get(isin) or {}).get("aggregates", []))

@@ -30,12 +30,17 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 import motifs
-from tr_client import fetch_many_history, fetch_many_tickers
-from tr_data import BASE, charger_isins
+from tr_data import BASE, charger_isins, historiques, place, tickers
 
 PARIS = ZoneInfo("Europe/Paris")
 FICHIER = BASE / "picks.json"
 FICHIER_MVT = BASE / "mouvements.json"
+FICHIER_DU = BASE / "downup.json"
+FICHIER_SERIES = BASE / "series.json"  # lu par simulateur.py
+# Plancher propre au motif DOWN/UP : Anoto (0,008-0,016 EUR) passait sous le
+# plancher general de 0,01. Le despike + le spread filtrent deja les prints
+# aberrants ; on descend donc a 0,002 pour ce seul motif.
+PLANCHER_DU = 0.002
 
 SEUIL_PIC = 20.0        # amplitude du jour (%) a partir de laquelle on parle de pic
 PLANCHER = 0.01         # EUR : en dessous, les prints LSX ne sont pas fiables
@@ -249,7 +254,8 @@ async def un_tour_picks(seuil: float = SEUIL_PIC) -> dict:
     isins = [i for i in noms if i not in EXCLUS]
     ETAT.update(en_cours=True, progression=0, total=len(isins), erreur=None)
 
-    lignes, mouvements = [], []
+    lignes, mouvements, downup = [], [], []
+    series: dict = {}  # pour le simulateur : seances compactes + quantite dispo a l'ask
     maintenant = datetime.now(PARIS)
     # Pourquoi en parallele : un lot attend son timeout complet des qu'UN seul
     # titre ne repond pas (et il y en a dans presque chaque lot). En sequentiel
@@ -261,8 +267,8 @@ async def un_tour_picks(seuil: float = SEUIL_PIC) -> dict:
         async with sem:
             # Historique et prix live en meme temps : deux connexions par lot
             hist, live = await asyncio.gather(
-                fetch_many_history(lot, range="1m", timeout=30),
-                fetch_many_tickers(lot, timeout=20),
+                historiques(lot, range="1m", timeout=30),
+                tickers(lot, timeout=20),
             )
         _garder(lot, hist, live)
         ETAT["progression"] += len(lot)
@@ -271,12 +277,29 @@ async def un_tour_picks(seuil: float = SEUIL_PIC) -> dict:
         for isin in lot:
             h, t = hist.get(isin), live.get(isin)
             bid, ask = _prix(t, "bid"), _prix(t, "ask")
-            if not h or not bid or not ask or bid < PLANCHER:
+            if not h or not bid or not ask or bid < PLANCHER_DU:
                 continue
             spread = (ask - bid) / bid * 100
             if spread > SPREAD_MAX:
                 continue
             jours = jours_depuis_bougies(h.get("aggregates", []))
+            if len(jours) >= 5 and min(j["bas"] for j in jours) >= PLANCHER_DU:
+                series[isin] = {
+                    "nom": noms[isin], "bid": bid, "ask": ask, "spread": round(spread, 1),
+                    "ask_size": (t.get("ask") or {}).get("size"), "hf": isin[:2] in HORS_FUSEAU,
+                    "j": [[j["date"], j["bas"], j["haut"], j["cloture"]] for j in jours],
+                }
+            if jours and min(j["bas"] for j in jours) >= PLANCHER_DU:
+                du = motifs.down_up(jours)
+                if du["cycles"] or du["en_phase_down"]:
+                    downup.append({
+                        "isin": isin, "nom": noms[isin], "bid": bid, "ask": ask, "spread_pct": round(spread, 1),
+                        "hors_fuseau": isin[:2] in HORS_FUSEAU, "clotures": [round(j["cloture"], 6) for j in jours],
+                        "bas_mois": min(j["bas"] for j in jours), "haut_mois": max(j["haut"] for j in jours),
+                        "dernier_jour": jours[-1]["date"], **du,
+                    })
+            if bid < PLANCHER:  # picks et mouvements gardent le plancher general
+                continue
             v = variations(jours, bid, spread, maintenant)
             mo = motifs.chute_rebond(jours)
             # resume du motif, sans le detail des occurrences (garde le JSON leger)
@@ -315,7 +338,17 @@ async def un_tour_picks(seuil: float = SEUIL_PIC) -> dict:
     resultat = {"heure": datetime.now(PARIS).isoformat(timespec="seconds"), "seuil": seuil, "lignes": lignes}
     FICHIER.write_text(json.dumps(resultat, ensure_ascii=False), encoding="utf-8")
     FICHIER_MVT.write_text(json.dumps({"heure": resultat["heure"], "lignes": mouvements}, ensure_ascii=False), encoding="utf-8")
+    downup.sort(key=lambda l: (-l["reussis"], -(l["taux"] or 0), -(l["rebond_moy"] or 0)))
+    FICHIER_DU.write_text(json.dumps({"heure": resultat["heure"], "lignes": downup}, ensure_ascii=False), encoding="utf-8")
+    FICHIER_SERIES.write_text(json.dumps({"heure": resultat["heure"], "titres": series}, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     return resultat
+
+
+def charger_downup() -> dict:
+    try:
+        return json.loads(FICHIER_DU.read_text(encoding="utf-8"))
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {"heure": None, "lignes": []}
 
 
 def charger_mouvements() -> dict:

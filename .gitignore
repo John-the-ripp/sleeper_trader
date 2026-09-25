@@ -11,3 +11,12 @@ isins_cache_*.json
 explications/
 alertes.json
 alertes.json
+regles.json
+downup.json
+regles_config.json
+series.json
+paper.json
+recommandations.json
+yahoo_map.json
+cotes_journal.jsonl
+places.json
