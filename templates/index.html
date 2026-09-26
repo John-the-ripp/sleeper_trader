@@ -264,6 +264,30 @@ tbody tr.sel td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
 .cat.secteur { background: var(--warn-2); color: var(--warn); }
 .cat.technique { background: var(--panel-3); color: var(--ink-2); }
 .cat.artefact { background: var(--down-2); color: var(--down); }
+.cat.positif { background: var(--up-2); color: var(--up); }
+.cat.negatif { background: var(--down-2); color: var(--down); }
+.cat.neutre { background: var(--panel-3); color: var(--ink-2); }
+.tw { padding: 8px 0; border-top: 1px solid var(--line); font-size: 12.5px; line-height: 1.4; }
+.tw .ts { font-size: 11px; color: var(--ink-3); margin-top: 3px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.tw .lk { color: var(--accent); text-decoration: none; white-space: nowrap; max-width: 180px; overflow: hidden; text-overflow: ellipsis; }
+.tw .lk:hover { text-decoration: underline; }
+.tw .ia { margin-top: 6px; padding: 6px 8px; border-radius: 8px; background: var(--accent-2); font-size: 12px; display: flex; gap: 6px; flex-wrap: wrap; align-items: baseline; }
+.tw .ia.off { background: var(--panel-3); color: var(--ink-3); }
+.tw .ia b { font: 600 10px Geist; text-transform: uppercase; letter-spacing: .04em; color: var(--accent); }
+.tw.hit { border-left: 2px solid var(--accent); padding-left: 8px; }
+#tw-consigne { width: 320px; max-width: 100%; }
+.tw .imgs { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 6px; margin-top: 6px; }
+.tw .imgs a { position: relative; display: block; border-radius: 8px; overflow: hidden; border: 1px solid var(--line); background: var(--panel-3); }
+.tw .imgs img { display: block; width: 100%; height: 150px; object-fit: cover; }
+.tw .imgs.seul { grid-template-columns: 1fr; }
+.tw .imgs.seul img { height: auto; max-height: 360px; object-fit: contain; }
+.tw .imgs .vid { position: absolute; inset: 0; display: grid; place-items: center; color: #fff; font-size: 26px; text-shadow: 0 1px 6px rgba(0,0,0,.6); }
+.tw .tags { display: flex; gap: 4px; flex-wrap: wrap; }
+.tw .tags span { font: 600 10px "Geist Mono"; padding: 1px 5px; border-radius: 4px; background: var(--panel-3); color: var(--ink-2); }
+#g-tweets[hidden], #g-crypto[hidden], #tw-ton[hidden] { display: none; }  /* display:grid/inline-flex ecrase [hidden] */
+.crypto-sec { grid-column: 1 / -1; }
+.crypto-sec .rgrid { padding: 0; }
+.tw[dir] .tt { unicode-bidi: plaintext; }
 .cat.inconnu { background: var(--panel-2); color: var(--ink-3); border: 1px solid var(--line); }
 .why { display: flex; align-items: center; gap: 8px; min-width: 250px; max-width: 420px; white-space: normal; text-align: left; }
 .why .c { font-size: 12px; color: var(--ink-2); line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
@@ -286,8 +310,9 @@ td.whytd { text-align: left; }
 
 /* alertes */
 .bell { position: relative; }
-.bell .badge { position: absolute; top: -5px; right: -5px; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 9px;
-  font: 600 10px/17px "Geist Mono"; text-align: center; background: var(--down); color: #fff; }
+/* pastille DANS le bouton, a cote du texte : en absolu elle masquait la fin de "Alertes" */
+.bell .badge { position: static; min-width: 18px; height: 18px; padding: 0 5px; margin-right: -4px; border-radius: 9px;
+  font: 600 10px/18px "Geist Mono"; text-align: center; background: var(--down); color: #fff; }
 .bell.on svg { color: var(--accent); }
 .bell.ring svg { animation: ring .8s ease-in-out 2; transform-origin: 50% 10%; }
 @keyframes ring { 20% { transform: rotate(14deg); } 40% { transform: rotate(-12deg); } 60% { transform: rotate(8deg); } 80% { transform: rotate(-4deg); } }
@@ -324,6 +349,8 @@ td.whytd { text-align: left; }
 .rg button { height: 24px; padding: 0 8px; border-radius: 6px; color: var(--ink-3); font-size: 11.5px; border: 1px solid var(--line-2); }
 .rg button:hover { color: var(--ink); border-color: var(--line-3); }
 .al .ic.regle { background: var(--accent-2); color: var(--accent); }
+.al .ic.tweet { background: var(--ink); color: var(--panel); font-weight: 700; }
+.al .timg { display: block; margin-top: 6px; max-width: 100%; max-height: 120px; border-radius: 6px; border: 1px solid var(--line); }
 .apanel .sub-h { padding: 10px 14px 4px; font-size: 11px; color: var(--ink-3); text-transform: uppercase; letter-spacing: .07em; display: flex; }
 .apanel .sub-h span { margin-left: auto; text-transform: none; letter-spacing: 0; }
 .apanel .rgs { padding: 0 14px 10px; border-bottom: 1px solid var(--line); }
@@ -640,6 +667,10 @@ td.whytd { text-align: left; }
       <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9z"/></svg>
       <span class="badge" id="b-watch" hidden></span><span class="tip">Watchlist <kbd>8</kbd></span>
     </button>
+    <button class="nav" data-view="tweets" aria-label="News Twitter">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.8 3h3.1l-6.8 7.8L22 21h-6.2l-4.9-6.4L5.3 21H2.2l7.3-8.3L1.9 3h6.4l4.4 5.8zm-1.1 16.2h1.7L7.4 4.7H5.6z"/></svg>
+      <span class="badge" id="b-tweets" hidden></span><span class="tip">News Twitter · signaux</span>
+    </button>
     <div class="spacer"></div>
     <button class="nav" id="theme" aria-label="Thème">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor"/></svg>
@@ -744,6 +775,15 @@ td.whytd { text-align: left; }
             <span class="count-lbl" id="s-info" style="flex-basis:100%"></span>
           </div>
           <div class="toolbar" id="tb-live" hidden><span class="count-lbl">Titres qui ont bougé de <b>≥ 12 %</b> entre deux scans (toutes les 5 min), spread ≤ 20 %</span></div>
+          <div class="toolbar" id="tb-tweets" hidden>
+            <div class="seg" id="tw-cat"><button data-c="actions" class="on">Actions</button><button data-c="crypto">Crypto</button><button data-c="traders">Traders</button></div>
+            <div class="seg" id="tw-jours"><button data-j="1">24 h</button><button data-j="3">3 j</button><button data-j="7" class="on">7 j</button></div>
+            <div class="seg" id="tw-ton"><button data-t="" class="on">Tous</button><button data-t="positif">Positifs</button><button data-t="negatif">Négatifs</button></div>
+            <button class="chip" id="tw-pert" aria-pressed="false" title="Seulement les tweets que l'IA juge pertinents pour ta consigne"><span class="ck"></span>Pertinents IA</button>
+            <label class="field" title="Ce que l'IA doit chercher dans les tweets">Je cherche<input id="tw-consigne" type="text"></label>
+            <button class="btn primary" id="tw-lire" style="height:30px">Lire avec l'IA</button>
+            <span class="count-lbl" id="tw-info" style="flex-basis:100%"></span>
+          </div>
           <div class="toolbar" id="tb-watch" hidden><span class="count-lbl">Prix rafraîchis toutes les <b>10 s</b> · clique ☆ dans Picks ou Live pour ajouter</span></div>
 
           <div class="scroll" id="v-reco" hidden>
@@ -788,6 +828,12 @@ td.whytd { text-align: left; }
             <tbody id="t-live"></tbody></table>
           </div>
           <div class="scroll" id="v-watch" hidden><div class="wgrid" id="g-watch"></div></div>
+          <div class="scroll" id="v-tweets" hidden>
+            <div class="avert">⚠ Un tweet est un <b>signal d'attention</b>, pas une preuve. Le ton (positif / négatif) vient de <b>mots-clés</b>
+              (« hausse », « contrat », « augmentation de capital »…), pas d'une lecture humaine. Comptes lus : <span id="tw-comptes"></span>.</div>
+            <div class="rgrid" id="g-tweets"></div>
+            <div class="rgrid" id="g-crypto"></div>
+          </div>
         </section>
 
         <!-- ================================================ détail -->
@@ -890,6 +936,7 @@ td.whytd { text-align: left; }
     <button class="chip" data-at="decroche" aria-pressed="true" title="Le bid LSX d'un titre surveillé décroche sous le vrai prix"><span class="ck"></span>Décrochage LSX</button>
     <button class="chip" data-at="realigne" aria-pressed="true" title="Le bid LSX se réaligne sur le vrai prix (moment de vendre)"><span class="ck"></span>Réalignement</button>
     <button class="chip" data-at="plancher" aria-pressed="true" title="Un titre en range revient toucher son plancher (zone d'achat)"><span class="ck"></span>Range au plancher</button>
+    <button class="chip" data-at="tweet" aria-pressed="true" title="Nouveau tweet d'un compte de comptes_x.json → notifier"><span class="ck"></span>Tweets suivis</button>
     <button class="chip" data-at="downup" aria-pressed="true" title="Un titre DOWN/UP (type Anoto) vient de faire une grosse chute pas encore rachetée"><span class="ck"></span>DOWN/UP en phase DOWN</button>
   </div>
   <div class="sub-h">Mes alertes <span id="a-rg-info"></span></div>
@@ -960,8 +1007,8 @@ $("#theme").onclick = basculerTheme;
 
 // ================================================================= état
 // Ordre des vues = ordre de la barre latérale = touches 1 à 9
-const ORDRE = ["reco", "picks", "moves", "rebonds", "downup", "ranges", "simu", "live", "watch"];
-let RECOS = [];
+const ORDRE = ["reco", "picks", "moves", "rebonds", "downup", "ranges", "simu", "live", "watch", "tweets"];
+let RECOS = [], TWEETS = [];
 let PICKS = [], LIVE = [], WLIST = [], MOVES = [], REBONDS = [], DOWNUP = [], SIMU = [], RANGES_V = [], WATCH = new Set();
 let vue = "picks", tri = { k: "score", dir: -1 }, selIsin = null, lignesVisibles = [];
 
@@ -975,6 +1022,7 @@ const VUES = {
   downup: ["DOWN/UP · type Anoto", "Chaque grosse chute (≥ 20 %) est rachetée (≥ 20 %) en moins de 5 séances, de façon répétée"],
   live: ["Live", "Ce qui bouge en ce moment sur tout l'univers Trade Republic"],
   watch: ["Watchlist", "Tes titres suivis, en temps réel"],
+  tweets: ["News Twitter · signaux", "Les actions Trade Republic citées sur X par les comptes suivis"],
 };
 function allerVue(v) {
   vue = v;
@@ -988,12 +1036,13 @@ function allerVue(v) {
   if (v === "simu") chargerSimu();
   if (v === "ranges") chargerRanges();
   if (v === "reco") chargerReco();
+  if (v === "tweets") chargerTweets();
   majLignesVisibles();
 }
 $$(".nav[data-view]").forEach(b => b.onclick = () => allerVue(b.dataset.view));
 
 function majLignesVisibles() {
-  const src = { reco: () => RECOS, picks: () => filtrer(), moves: () => movesFiltres(), rebonds: () => REBONDS, downup: () => DOWNUP, simu: () => SIMU, ranges: () => RANGES_V, live: () => LIVE, watch: () => WLIST }[vue];
+  const src = { reco: () => RECOS, picks: () => filtrer(), moves: () => movesFiltres(), rebonds: () => REBONDS, downup: () => DOWNUP, simu: () => SIMU, ranges: () => RANGES_V, live: () => LIVE, watch: () => WLIST, tweets: () => tweetsFiltres() }[vue];
   lignesVisibles = src().map(l => l.isin);
 }
 
@@ -1245,6 +1294,7 @@ PREF.types.downup ??= true;
 PREF.types.plancher ??= true;
 PREF.types.decroche ??= true;
 PREF.types.realigne ??= true;
+PREF.types.tweet ??= true;
 const sauverPref = () => { try { localStorage.alertes = JSON.stringify(PREF); } catch {} };
 let audio = null, dernierId = null, ALERTES = [];
 
@@ -1265,28 +1315,28 @@ function bip(montant = true) {
 ["click", "keydown"].forEach(ev => addEventListener(ev, () => { if (PREF.on && audio?.state === "suspended") audio.resume(); }, { once: true }));
 
 function notifier(a) {
-  const titre = a.type === "decroche" ? `⤓ LSX décroche : ${a.nom}` : a.type === "realigne" ? `⤒ LSX réaligné : ${a.nom}` : a.type === "plancher" ? `⌊ Au plancher : ${a.nom}` : a.type === "downup" ? `⇅ Phase DOWN : ${a.nom}` : a.type === "regle" ? `🔔 ${a.nom}` : a.type === "rebond" ? `↗ Rebond : ${a.nom}` : a.type === "watchlist" ? `★ Watchlist en chute : ${a.nom}` : `↘ Forte chute : ${a.nom}`;
-  const corps = ["regle", "downup", "plancher", "decroche", "realigne"].includes(a.type) ? (a.cause || "") : a.type === "rebond" ? `Hier ${pct(a.var_veille, true)} → aujourd'hui ${pct(a.var_1j, true)}\n${a.cause || ""}` : `${pct(a.var_1j, true)} · ${a.cause || "cause inconnue"}`;
+  const titre = a.type === "tweet" ? `𝕏 ${a.nom} a tweeté` : a.type === "decroche" ? `⤓ LSX décroche : ${a.nom}` : a.type === "realigne" ? `⤒ LSX réaligné : ${a.nom}` : a.type === "plancher" ? `⌊ Au plancher : ${a.nom}` : a.type === "downup" ? `⇅ Phase DOWN : ${a.nom}` : a.type === "regle" ? `🔔 ${a.nom}` : a.type === "rebond" ? `↗ Rebond : ${a.nom}` : a.type === "watchlist" ? `★ Watchlist en chute : ${a.nom}` : `↘ Forte chute : ${a.nom}`;
+  const corps = ["tweet", "regle", "downup", "plancher", "decroche", "realigne"].includes(a.type) ? (a.cause || "") : a.type === "rebond" ? `Hier ${pct(a.var_veille, true)} → aujourd'hui ${pct(a.var_1j, true)}\n${a.cause || ""}` : `${pct(a.var_1j, true)} · ${a.cause || "cause inconnue"}`;
   if ("Notification" in window && Notification.permission === "granted") {
     const n = new Notification(titre, { body: corps, tag: a.cle, requireInteraction: false });
-    n.onclick = () => { window.focus(); selectionner(a.isin); n.close(); };
+    n.onclick = () => { if (a.type === "tweet") window.open(a.lien, "_blank", "noopener"); else { window.focus(); selectionner(a.isin); } n.close(); };
   }
   toast(`<b>${esc(titre)}</b><br><span class="muted">${esc(a.cause || "")}</span>`);
 }
 
 function rendreAlertes() {
   const lu = PREF.lu || 0, nonLus = ALERTES.filter(a => a.id > lu && PREF.types[a.type]).length;
-  $("#bell-n").hidden = !nonLus; $("#bell-n").textContent = nonLus;
+  $("#bell-n").hidden = !nonLus; $("#bell-n").textContent = nonLus > 99 ? "99+" : nonLus;
   $("#bell").classList.toggle("on", !!PREF.on);
   $("#bell-t").textContent = PREF.on ? "Alertes on" : "Alertes";
   $("#a-toggle").textContent = PREF.on ? "Désactiver" : "Activer";
   $("#a-toggle").className = "btn" + (PREF.on ? "" : " primary");
   $$("#apanel [data-at]").forEach(c => c.setAttribute("aria-pressed", !!PREF.types[c.dataset.at]));
   const liste = ALERTES.filter(a => PREF.types[a.type]);
-  $("#a-list").innerHTML = liste.length ? liste.map(a => `<div class="al ${a.id > lu ? "new" : ""}" data-alert="${a.isin}">
-      <div class="ic ${a.type}">${a.type === "decroche" ? "⤓" : a.type === "realigne" ? "⤒" : a.type === "plancher" ? "⌊" : a.type === "downup" ? "⇅" : a.type === "regle" ? "🔔" : a.type === "rebond" ? "↗" : a.type === "watchlist" ? "★" : "↘"}</div>
+  $("#a-list").innerHTML = liste.length ? liste.map(a => `<div class="al ${a.id > lu ? "new" : ""}" data-alert="${a.isin}"${a.lien ? ` data-lien="${esc(a.lien)}"` : ""}>
+      <div class="ic ${a.type}">${a.type === "tweet" ? "𝕏" : a.type === "decroche" ? "⤓" : a.type === "realigne" ? "⤒" : a.type === "plancher" ? "⌊" : a.type === "downup" ? "⇅" : a.type === "regle" ? "🔔" : a.type === "rebond" ? "↗" : a.type === "watchlist" ? "★" : "↘"}</div>
       <div><div class="t1"><b>${esc(a.nom)}</b>${a.var_1j == null || ["plancher", "decroche", "realigne"].includes(a.type) ? "" : `<span class="num ${a.var_1j >= 0 ? "up" : "down"}">${a.type === "rebond" ? pct(a.var_veille, true) + " → " : ""}${pct(a.var_1j, true)}</span>`}</div>
-        <div class="t2">${a.categorie ? catTag(a) + " " : ""}${esc(a.cause || "")}</div>
+        <div class="t2" dir="auto">${a.categorie ? catTag(a) + " " : ""}${esc(a.cause || "")}</div>${a.image ? `<img class="timg" src="${esc(a.image)}" alt="image du tweet" loading="lazy" referrerpolicy="no-referrer">` : ""}
         <div class="t3">${new Date(a.heure).toLocaleString("fr-FR", { weekday: "short", hour: "2-digit", minute: "2-digit" })}</div></div></div>`).join("")
     : `<div class="empty" style="padding:30px"><b>Aucune alerte</b>Elles arrivent après chaque passage du screener (toutes les 15 min en séance).</div>`;
 }
@@ -1328,7 +1378,9 @@ $("#a-toggle").onclick = async () => {
 };
 $("#a-test").onclick = () => { bip(false); notifier({ type: "chute", cle: "test" + Date.now(), nom: "Test", var_1j: -18.4, cause: "Ceci est une alerte de test.", isin: selIsin || "" }); };
 $$("#apanel [data-at]").forEach(c => c.onclick = () => { PREF.types[c.dataset.at] = !PREF.types[c.dataset.at]; sauverPref(); rendreAlertes(); });
-$("#a-list").onclick = e => { const a = e.target.closest("[data-alert]"); if (a) { $("#apanel").classList.remove("open"); selectionner(a.dataset.alert); } };
+$("#a-list").onclick = e => { const a = e.target.closest("[data-alert]"); if (!a) return;
+  if (a.dataset.lien) { window.open(a.dataset.lien, "_blank", "noopener"); return; }  // alerte tweet : ouvre le tweet
+  $("#apanel").classList.remove("open"); selectionner(a.dataset.alert); };
 
 // ====================================================== recommandations
 let R2 = { bons: false };
@@ -1746,6 +1798,80 @@ async function chargerLive() {
   if (vue === "live") majLignesVisibles();
 }
 
+// ======================================================= news twitter
+const TW_DEFAUT = "prédictions de cours, objectifs de cours, recommandations d'achat ou de vente, avis d'analystes";
+let twJours = 7, twTon = "", twPert = false, twCat = "actions", twData = null;
+try { $("#tw-consigne").value = localStorage.getItem("tw-consigne") || TW_DEFAUT; } catch { $("#tw-consigne").value = TW_DEFAUT; }
+const twConsigne = () => $("#tw-consigne").value.trim() || TW_DEFAUT;
+const tweetsFiltres = () => twCat !== "actions" ? [] : TWEETS.filter(g => (!twTon || g.signal === twTon) && (!twPert || g.pertinents));
+async function chargerTweets(ia = false) {
+  $("#g-tweets").innerHTML = `<div class="empty" style="grid-column:1/-1"><b>${ia ? "L'IA lit les tweets…" : "Lecture des comptes X…"}</b>${ia
+    ? "Environ 30 s pour 40 tweets. Les tweets déjà lus pour cette consigne ne sont pas relus." : "Environ 10 s la première fois, ensuite en cache 10 min."}</div>`;
+  const q = `jours=${twJours}&consigne=${encodeURIComponent(twConsigne())}`;
+  const r = await (ia ? api("/api/tweets/lire?" + q, { method: "POST" }) : api("/api/tweets?" + q)).catch(() => null);
+  if (!r) { $("#g-tweets").innerHTML = `<div class="fl bad">Erreur de connexion au serveur</div>`; return; }
+  if (r.erreur_ia) toast("IA indisponible : " + esc(r.erreur_ia));
+  twData = r; TWEETS = r.lignes;
+  $("#tw-comptes").innerHTML = r.comptes.map(c => `<a href="https://x.com/${esc(c)}" target="_blank" rel="noopener noreferrer" style="color:var(--accent);text-decoration:none">@${esc(c)}</a>`).join(", ");
+  rendreTweets();
+}
+function rendreTweets() {
+  const L = tweetsFiltres(), d = s => new Date(s).toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+  const TON = { positif: "Positif", negatif: "Négatif", neutre: "Neutre" };
+  $("#b-tweets").hidden = !TWEETS.length; $("#b-tweets").textContent = TWEETS.length;
+  const nPert = TWEETS.reduce((n, g) => n + (g.pertinents || 0), 0);
+  $("#tw-info").innerHTML = twData ? `<b>${L.length}</b> titre(s) · ${twData.tweets_lus} tweets lus · ${ago(twData.heure)} · IA : ${twData.ia_lus}/${twData.ia_total} lus${twData.ia_lus ? `, <b>${nPert}</b> pertinent(s)` : ""}` : "";
+  const TYPE = { prediction: "Prédiction", objectif: "Objectif de cours", recommandation: "Recommandation", resultats: "Résultats", news: "News", technique: "Technique", avis: "Avis", autre: "Autre" };
+  const dom = u => { try { return new URL(u).hostname.replace(/^www\./, ""); } catch { return "lien"; } };
+  const ia = t => !t.ia ? "" : t.ia.pertinent
+    ? `<div class="ia"><b>${TYPE[t.ia.type] || "IA"}</b><span class="${t.ia.sens === "hausse" ? "up" : t.ia.sens === "baisse" ? "down" : "faint"}">${t.ia.sens === "hausse" ? "▲ hausse" : t.ia.sens === "baisse" ? "▼ baisse" : "neutre"}</span>${
+        t.ia.objectif != null ? `<span>objectif <b style="color:inherit;font:inherit">${px(t.ia.objectif)}</b></span>` : ""}${t.ia.horizon ? `<span class="faint">${esc(t.ia.horizon)}</span>` : ""}${
+        t.ia.qui ? `<span class="faint">par ${esc(t.ia.qui)}</span>` : ""}<span style="flex-basis:100%">${esc(t.ia.resume)}</span></div>`
+    : `<div class="ia off">IA : rien de ce que tu cherches · ${esc(t.ia.resume)}</div>`;
+  const imgs = t => !(t.images || []).length ? "" : `<div class="imgs ${t.images.length === 1 ? "seul" : ""}">${t.images.map(i =>
+      `<a href="${esc(i.url)}" target="_blank" rel="noopener noreferrer"><img src="${esc(i.mini)}" alt="image du tweet" loading="lazy" referrerpolicy="no-referrer">${i.video ? '<span class="vid">▶</span>' : ""}</a>`).join("")}</div>`;
+  const unTweet = (t, max = 240) => `<div class="tw ${t.ia?.pertinent ? "hit" : ""}" dir="auto">
+        <div class="tt">${esc(t.texte.length > max ? t.texte.slice(0, max) + "…" : t.texte)}</div>${imgs(t)}
+        <div class="ts"><a class="lk" href="${esc(t.lien)}" target="_blank" rel="noopener noreferrer">↗ @${esc(t.compte)} sur X</a>${
+          (t.liens || []).map(u => `<a class="lk" href="${esc(u)}" target="_blank" rel="noopener noreferrer" title="${esc(u)}">↗ ${esc(dom(u))}</a>`).join("")}
+          <span>${d(t.date)}</span><span>♥ ${t.likes} · ↻ ${t.reposts}</span>${t.mots.length ? `<span class="${t.ton === "positif" ? "up" : t.ton === "negatif" ? "down" : ""}">« ${esc(t.mots.join(", "))} »</span>` : ""}${
+          (t.tags || []).length ? `<span class="tags">${t.tags.map(x => `<span>${esc(x)}</span>`).join("")}</span>` : ""}</div>
+        ${ia(t)}</div>`;
+  // tweets pertinents d'abord, puis les plus récents
+  const tri = g => twPert ? g.tweets.filter(t => t.ia?.pertinent) : [...g.tweets].sort((a, b) => (b.ia?.pertinent ? 1 : 0) - (a.ia?.pertinent ? 1 : 0));
+  $("#g-tweets").innerHTML = L.length ? L.map(g => `<div class="rc ${g.isin === selIsin ? "sel" : ""}" data-isin="${g.isin}">
+      <div class="h">${avatar(g.nom, g.isin)}<div style="min-width:0;flex:1"><div style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(g.nom)}</div>
+        <div class="faint mono" style="font-size:11px">${g.isin}</div></div><span class="cat ${g.signal}">${TON[g.signal]}</span>${etoile(g.isin)}</div>
+      <div class="mv"><div><small>Séance</small>${g.var_1j == null ? '<span class="faint">—</span>' : `<span class="${g.var_1j >= 0 ? "up" : "down"}">${pct(g.var_1j, true)}</span>`}</div>
+        <div><small>5 séances</small>${g.var_5j == null ? '<span class="faint">—</span>' : `<span class="${g.var_5j >= 0 ? "up" : "down"}">${pct(g.var_5j, true)}</span>`}</div>
+        <div style="margin-left:auto;text-align:right"><small>Actuel</small><span style="font-size:16px">${g.courant == null ? "—" : px(g.courant)}</span></div></div>
+      ${tri(g).slice(0, 3).map(t => unTweet(t)).join("")}
+      <div class="foot">${g.spread_pct == null ? "" : spTag(g.spread_pct)}<span>${g.tweets.length} tweet(s)</span>${g.pertinents ? `<span class="up">${g.pertinents} pertinent(s) IA</span>` : ""}${tri(g).length > 3 ? `<span class="faint">+${tri(g).length - 3} autre(s)</span>` : ""}</div>
+    </div>`).join("")
+    : `<div class="empty" style="grid-column:1/-1"><b>Aucun titre cité</b>Aucun tweet des comptes suivis ne cite une action Trade Republic sur cette période. Ajoute des comptes dans comptes_x.json.</div>`;
+  // vues Crypto / Traders : un flux de posts (meme rendu), dans #g-crypto
+  $("#g-tweets").hidden = twCat !== "actions"; $("#g-crypto").hidden = twCat === "actions"; $("#tw-ton").hidden = twCat !== "actions";
+  const F = twData?.flux?.[twCat] || { nom: "", comptes: [], tweets: [] };
+  const C = F.tweets.filter(t => !twPert || t.ia?.pertinent);
+  $("#g-crypto").innerHTML = twCat === "actions" ? "" : !F.comptes.length
+    ? `<div class="empty"><b>Aucun compte</b>Ajoute des comptes dans « ${twCat} » de comptes_x.json.</div>` : `<div class="crypto-sec">
+      <div class="sec-h" style="margin:8px 0 10px"><h3>${esc(F.nom)}</h3><span class="faint" style="margin-left:auto;font-size:11.5px">${
+        F.comptes.map(c => `<a href="https://x.com/${esc(c)}" target="_blank" rel="noopener noreferrer" style="color:var(--accent);text-decoration:none">@${esc(c)}</a>`).join(", ")} · ${C.length} post(s)</span></div>
+      <div class="rgrid">${C.length ? C.map(t => `<div class="rc" style="cursor:default">${unTweet(t, 500)}</div>`).join("")
+        : `<div class="empty" style="grid-column:1/-1"><b>Aucun post</b>sur cette période${twPert ? " jugé pertinent par l'IA" : ""}.</div>`}</div></div>`;
+  if (vue === "tweets") majLignesVisibles();
+}
+$("#tw-jours").onclick = e => { const b = e.target.closest("button"); if (!b) return;
+  $$("#tw-jours button").forEach(x => x.classList.toggle("on", x === b)); twJours = +b.dataset.j; chargerTweets(); };
+$("#tw-ton").onclick = e => { const b = e.target.closest("button"); if (!b) return;
+  $$("#tw-ton button").forEach(x => x.classList.toggle("on", x === b)); twTon = b.dataset.t; rendreTweets(); };
+$("#tw-cat").onclick = e => { const b = e.target.closest("button"); if (!b) return;
+  $$("#tw-cat button").forEach(x => x.classList.toggle("on", x === b)); twCat = b.dataset.c; rendreTweets(); };
+$("#tw-pert").onclick = () => { twPert = !twPert; $("#tw-pert").setAttribute("aria-pressed", twPert); rendreTweets(); };
+$("#tw-lire").onclick = () => chargerTweets(true);
+$("#tw-consigne").onchange = () => { try { localStorage.setItem("tw-consigne", twConsigne()); } catch {} chargerTweets(); };
+$("#tw-consigne").onkeydown = e => { if (e.key === "Enter") { e.preventDefault(); $("#tw-consigne").blur(); } };
+
 // ============================================================ watchlist
 let prevBid = {};
 async function chargerWatch() {
@@ -2019,6 +2145,10 @@ function rendreIA(r) {
     <div class="news">${r.news.length ? r.news.map(n => `<a href="${esc(n.lien)}" target="_blank" rel="noopener noreferrer">
         <span class="nd">${d(n.date)}</span><span><div class="nt">${esc(n.titre)}</div><div class="ns">${esc(n.source)}</div></span></a>`).join("")
       : '<div class="faint" style="font-size:12px;padding:8px 0">Aucune news trouvée sur 30 jours.</div>'}</div>
+    <div class="sec-h" style="margin:14px 0 4px"><h3>X · tweets</h3><span class="faint" style="margin-left:auto;font-size:11.5px">comptes suivis (comptes_x.json)</span></div>
+    <div class="news">${(r.tweets || []).length ? r.tweets.map(t => `<a href="${esc(t.lien)}" target="_blank" rel="noopener noreferrer">
+        <span class="nd">${d(t.date)}</span><span><div class="nt">${esc(t.texte.length > 220 ? t.texte.slice(0, 220) + "…" : t.texte)}</div><div class="ns">@${esc(t.compte)} · ♥ ${t.likes} · ↻ ${t.reposts}${t.vues ? ` · ${t.vues} vues` : ""}</div></span></a>`).join("")
+      : '<div class="faint" style="font-size:12px;padding:8px 0">Aucun tweet trouvé dans les comptes suivis.</div>'}</div>
     <div class="ia-meta"><span>${esc(r.modele || "")} · ${r.cache ? "en cache, " : ""}${ago(r.heure)}</span>
       <button class="btn" id="ia-re" style="height:26px;margin-left:auto">↻ Relancer</button></div>`;
   $("#ia-re").onclick = () => lancerIA(r.isin, true);

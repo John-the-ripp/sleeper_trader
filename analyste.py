@@ -23,6 +23,7 @@ from dotenv import load_dotenv
 import motifs
 import news
 import picks
+import tweets
 from tr_data import BASE, historiques, tickers
 
 load_dotenv(BASE / ".env")
@@ -35,6 +36,7 @@ Règles strictes :
 - Réponds en français, de façon concise (220 mots maximum).
 - Utilise UNIQUEMENT les données fournies. N'invente aucun chiffre, aucune news, aucune date.
 - Quand tu relies un mouvement à une news, cite la date et la source. Si aucune news n'explique un mouvement, dis-le clairement.
+- Les tweets (X) sont des signaux d'attention, pas des faits : cite le compte (@...) et ne les confonds pas avec des news.
 - Les prix viennent de cotations Lang & Schwarz, parfois peu fiables sur les petites valeurs : tiens compte des drapeaux fournis.
 - Ne donne aucun conseil d'achat ou de vente.
 Format (titres en gras, puces courtes) :
@@ -44,7 +46,7 @@ Format (titres en gras, puces courtes) :
 **Points de vigilance** — spread, liquidité, fiabilité des cotations, taille de l'échantillon."""
 
 
-def _llm(messages: list[dict]) -> str:
+def _llm(messages: list[dict], max_tokens: int = 900) -> str:
     base = os.environ.get("VLLM_BASE_URL", "").rstrip("/")
     if not base:
         raise RuntimeError("VLLM_BASE_URL absent du fichier .env")
@@ -52,14 +54,15 @@ def _llm(messages: list[dict]) -> str:
         base + "/chat/completions",
         headers={"Authorization": f"Bearer {os.environ.get('VLLM_API_KEY', '')}"},
         json={"model": os.environ.get("MODEL_NAME", "gemma4-26b"), "messages": messages,
-              "temperature": 0.2, "max_tokens": 900},
+              "temperature": 0.2, "max_tokens": max_tokens},
         timeout=120,
     )
     r.raise_for_status()
     return r.json()["choices"][0]["message"]["content"].strip()
 
 
-def _contexte(nom: str, isin: str, t: dict, jours: list[dict], m: dict, flags: list[str], articles: list[dict]) -> str:
+def _contexte(nom: str, isin: str, t: dict, jours: list[dict], m: dict, flags: list[str], articles: list[dict],
+              posts: list[dict]) -> str:
     bid, ask = picks._prix(t, "bid"), picks._prix(t, "ask")
     lignes = [f"Titre : {nom} (ISIN {isin})", f"Aujourd'hui : {datetime.now(picks.PARIS):%A %d/%m/%Y %H:%M}"]
     if bid and ask:
@@ -85,6 +88,12 @@ def _contexte(nom: str, isin: str, t: dict, jours: list[dict], m: dict, flags: l
         lignes.append(f"- {a['date'][:10]} | {a['source']} | {a['titre']}")
     if not articles:
         lignes.append("(aucune news trouvée)")
+
+    lignes.append(f"\nTweets récents sur X ({len(posts)}) : date | compte | likes | texte")
+    for p in posts:
+        lignes.append(f"- {p['date'][:10]} | @{p['compte']} | {p['likes']} likes | {' '.join(p['texte'].split())[:280]}")
+    if not posts:
+        lignes.append("(aucun tweet trouvé)")
     return "\n".join(lignes)
 
 
@@ -92,11 +101,12 @@ async def analyser(isin: str, nom: str, force: bool = False) -> dict:
     if not force and isin in CACHE and time.time() - CACHE[isin][0] < CACHE_S:
         return {**CACHE[isin][1], "cache": True}
 
-    # TR (async) et Google News (bloquant -> thread) en parallele
-    hist, live, articles = await asyncio.gather(
+    # TR (async), Google News et X (bloquants -> threads) en parallele
+    hist, live, articles, posts = await asyncio.gather(
         historiques([isin], range="1m", timeout=10),
         tickers([isin], timeout=8),
         asyncio.to_thread(news.chercher, nom),
+        asyncio.to_thread(tweets.chercher, nom, isin),
     )
     jours = picks.jours_depuis_bougies((hist.get(isin) or {}).get("aggregates", []))
     m = motifs.chute_rebond(jours)
@@ -116,7 +126,7 @@ async def analyser(isin: str, nom: str, force: bool = False) -> dict:
     try:
         resume = await asyncio.to_thread(_llm, [
             {"role": "system", "content": SYSTEME},
-            {"role": "user", "content": _contexte(nom, isin, t, jours, m, flags, articles)},
+            {"role": "user", "content": _contexte(nom, isin, t, jours, m, flags, articles, posts)},
         ])
     except Exception as exc:  # le reste (news + motif) reste utile sans le LLM
         erreur = f"{type(exc).__name__}: {exc}"[:300]
@@ -124,7 +134,7 @@ async def analyser(isin: str, nom: str, force: bool = False) -> dict:
     resultat = {
         "isin": isin, "heure": datetime.now(picks.PARIS).isoformat(timespec="seconds"),
         "modele": os.environ.get("MODEL_NAME"), "recherche": news.nom_de_recherche(nom),
-        "resume": resume, "erreur": erreur, "motif": m, "news": articles,
+        "resume": resume, "erreur": erreur, "motif": m, "news": articles, "tweets": posts,
     }
     if resume:
         CACHE[isin] = (time.time(), resultat)

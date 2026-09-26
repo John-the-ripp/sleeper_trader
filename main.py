@@ -29,6 +29,7 @@ import regles
 import paper
 import simulateur
 import scan
+import tweets
 from tr_client import fetch_one
 from tr_data import BASE, charger_isins, historiques, place, tickers
 
@@ -46,6 +47,7 @@ async def lifespan(_app):
               asyncio.create_task(explications.tour_explications()),
               asyncio.create_task(regles.boucle_regles()),
               asyncio.create_task(live.boucle()),
+              asyncio.create_task(tweets.boucle_notif()),  # notification a chaque nouveau tweet suivi
               asyncio.create_task(explications.prechauffer_origine())]  # cache LSX/origine des le demarrage
     yield
     for t in taches:
@@ -248,6 +250,23 @@ async def route_expliquer(isin: str):
         raise HTTPException(404, "pas de variation du jour pour ce titre")
     veille = (l.get("var_veille") or 0) <= explications.CHUTE_HIER
     return await explications.expliquer(l, avec_veille=veille, force=True)
+
+
+@app.get("/api/tweets")
+async def route_tweets(jours: int = 7, consigne: str = tweets.CONSIGNE_DEFAUT):
+    """Onglet News Twitter : titres TR cites dans les tweets des comptes de comptes_x.json,
+    avec les lectures IA deja faites pour cette consigne (sans appeler le LLM)."""
+    cotations = {l["isin"]: l for l in picks.charger_mouvements()["lignes"]}
+    data = await asyncio.to_thread(tweets.signaux, NOMS, cotations, max(1, min(jours, 30)))
+    return tweets.annoter(data, consigne)
+
+
+@app.post("/api/tweets/lire")
+async def route_tweets_lire(jours: int = 7, consigne: str = tweets.CONSIGNE_DEFAUT):
+    """Bouton "Lire avec l'IA" : le LLM lit les tweets pas encore lus pour cette consigne."""
+    cotations = {l["isin"]: l for l in picks.charger_mouvements()["lignes"]}
+    data = await asyncio.to_thread(tweets.signaux, NOMS, cotations, max(1, min(jours, 30)))
+    return await asyncio.to_thread(tweets.lire, data, consigne.strip()[:300] or tweets.CONSIGNE_DEFAUT)
 
 
 @app.get("/api/alertes")

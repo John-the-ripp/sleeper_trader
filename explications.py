@@ -201,7 +201,7 @@ def charger_alertes() -> list[dict]:
         return []
 
 
-def alerter(type_: str, l: dict, e: dict, cle: str | None = None) -> None:
+def alerter(type_: str, l: dict, e: dict, cle: str | None = None, extra: dict | None = None) -> None:
     """Ajoute une alerte (une seule par type, titre et jour). Le navigateur
     les recupere via /api/alertes et bipe pour chaque nouvel id."""
     alertes = charger_alertes()
@@ -213,7 +213,7 @@ def alerter(type_: str, l: dict, e: dict, cle: str | None = None) -> None:
         "isin": l["isin"], "nom": l["nom"], "jour": l["date_jour"],
         "var_1j": l["var_1j"], "var_veille": l.get("var_veille"), "courant": l["courant"],
         "categorie": e.get("categorie"), "cause": e.get("cause_jour"), "cause_veille": e.get("cause_veille"),
-        "heure": datetime.now(picks.PARIS).isoformat(timespec="seconds"),
+        "heure": datetime.now(picks.PARIS).isoformat(timespec="seconds"), **(extra or {}),
     })
     FICHIER_ALERTES.write_text(json.dumps(alertes[-300:], ensure_ascii=False), encoding="utf-8")
 

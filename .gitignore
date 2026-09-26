@@ -20,3 +20,5 @@ recommandations.json
 yahoo_map.json
 cotes_journal.jsonl
 places.json
+tweets_llm.json
+tweets_vus.json

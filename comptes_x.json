@@ -1,0 +1,19 @@
+{
+  "medias": [
+    "BFMBourse",
+    "zonebourse",
+    "Boursorama",
+    "LesEchos",
+    "abcbourse"
+  ],
+  "titres": {
+    "FR001400OLP5": "biophytis"
+  },
+  "crypto": [
+    "shabancrypto"
+  ],
+  "traders": [],
+  "notifier": [
+    "shabancrypto"
+  ]
+}
