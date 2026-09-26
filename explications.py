@@ -265,6 +265,60 @@ async def alertes_plancher() -> None:
                 {"categorie": None, "cause_jour": message, "cause_veille": None})
 
 
+AVANT_CHUTE = -10.0     # "avant le rebond" : titres en chute d'au moins 10 % aujourd'hui...
+AVANT_SPREAD = 20.0     # ... et assez serres pour qu'un rebond rapporte quelque chose
+
+
+def avant_rebond() -> dict:
+    """Demande du 26/09 : "des potentiels a acheter AVANT qu'ils rebondissent". Titres qui
+    chutent aujourd'hui, classes selon ce que LEUR passe justifie (pas de prediction) :
+      - "habituel"   : >= 2 chutes passees rachetees >= 60 % du temps, ou DOWN/UP confirme,
+                       ou oscillateur revenu a son support ;
+      - "a_confirmer": une seule chute passee, rachetee ;
+      - "couteau"    : aucun rebond connu sur le mois : on n'achete pas un couteau qui tombe.
+    Un "en_phase_down" sans cycle passe (0/0) ne compte pas : c'est juste la chute du jour."""
+    import recommandations  # import tardif : recommandations importe deja picks/motifs
+    lignes = picks.charger_mouvements()["lignes"]
+    aujourd_hui = next((l["date_jour"] for l in lignes if l.get("date_jour")), None)
+    expl = charger(aujourd_hui) if aujourd_hui else {}
+    du = {l["isin"]: l for l in picks.charger_downup().get("lignes", [])}
+    osc = {l["isin"]: l for l in recommandations.oscillateurs(prix_max=1e9, spread_max=AVANT_SPREAD)["lignes"]}
+    res = []
+    for l in lignes:
+        if (l.get("var_1j") or 0) > AVANT_CHUTE or l["spread_pct"] > AVANT_SPREAD or not _propre(l):
+            continue
+        m, d, o = l.get("motif") or {}, du.get(l["isin"]), osc.get(l["isin"])
+        e = expl.get(l["isin"]) or {}
+        raisons = []
+        if m.get("chutes"):
+            raisons.append(f"{m['rebonds']}/{m['chutes']} chutes ≥ 15 % suivies d'un rebond le lendemain"
+                           + (f" (moy +{m['rebond_moyen']:g} %)" if m.get("rebond_moyen") else ""))
+        if d and d.get("cycles"):
+            raisons.append(f"{d['reussis']}/{d['cycles']} grosses chutes (≥ 20 %) rachetées"
+                           + (f" en ~{d['delai_moy']} séances (rebond moy +{d['rebond_moy']:g} %)" if d.get("reussis") else ""))
+        if o:
+            raisons.append(f"oscillateur : support {o['support']:g}, résistance {o['resistance']:g}, à {o['position_pct']} % du range")
+        habituel = ((m.get("chutes") or 0) >= 2 and (m.get("taux") or 0) >= 60) or bool(d and d.get("downup")) \
+            or bool(o and o["position_pct"] is not None and o["position_pct"] <= 25)  # 0 % = pile au support (pas "absent")
+        a_confirmer = not habituel and ((m.get("rebonds") or 0) >= 1 or bool(d and d.get("reussis")))
+        cat = "habituel" if habituel else "a_confirmer" if a_confirmer else "couteau"
+        if e.get("categorie") == "artefact":
+            cat = "couteau"
+            raisons.append("l'IA juge la chute incohérente (erreur de cotation probable)")
+        rebond = m.get("rebond_moyen") or (d or {}).get("rebond_moy") or (o["hausse_med"] if o else None)
+        res.append({
+            "isin": l["isin"], "nom": l["nom"], "var_1j": l["var_1j"], "courant": l["courant"], "bid": l["bid"], "ask": l["ask"],
+            "spread_pct": l["spread_pct"], "hors_fuseau": l.get("hors_fuseau"), "categorie": cat, "raisons": raisons,
+            "rebond_attendu": rebond,
+            # ce qui reste d'un rebond "habituel" une fois l'aller-retour ask/bid paye
+            "net_attendu": round(rebond - l["spread_pct"], 1) if rebond else None,
+            "cause": e.get("cause_jour"), "cause_categorie": e.get("categorie"),
+        })
+    ordre = {"habituel": 0, "a_confirmer": 1, "couteau": 2}
+    res.sort(key=lambda r: (ordre[r["categorie"]], -(r["net_attendu"] or -99), r["var_1j"]))
+    return {"jour": aujourd_hui, "seuils": {"chute": AVANT_CHUTE, "spread": AVANT_SPREAD}, "lignes": res}
+
+
 def rapport_rebonds(jour: str | None = None) -> dict:
     """Rapport du jour ; pour un jour passe, on relit le fichier sauve."""
     lignes = picks.charger_mouvements()["lignes"]

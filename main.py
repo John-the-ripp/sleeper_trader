@@ -23,6 +23,7 @@ import analyste
 import live
 import origine
 import explications
+import flouz
 import picks
 import recommandations
 import regles
@@ -47,7 +48,8 @@ async def lifespan(_app):
               asyncio.create_task(explications.tour_explications()),
               asyncio.create_task(regles.boucle_regles()),
               asyncio.create_task(live.boucle()),
-              asyncio.create_task(tweets.boucle_notif()),  # notification a chaque nouveau tweet suivi
+              asyncio.create_task(tweets.boucle_notif()),
+              asyncio.create_task(flouz.boucle()),  # FLOUZMULATEUR : objectifs/stops/robot 5 min, LLM 30 min (en seance)  # notification a chaque nouveau tweet suivi
               asyncio.create_task(explications.prechauffer_origine())]  # cache LSX/origine des le demarrage
     yield
     for t in taches:
@@ -379,6 +381,30 @@ def paper_supprimer(id_: int):
 
 # -------------------------------------------------------- recommandations
 
+# ------------------------------------------------ FLOUZMULATEUR (le LLM trade en virtuel)
+
+@app.get("/api/flouz")
+async def route_flouz():
+    return await flouz.etat()
+
+
+@app.post("/api/flouz/tour")
+async def route_flouz_tour(a_blanc: bool | None = None):
+    """Fait jouer le LLM maintenant (a blanc hors seance, sauf a_blanc=false)."""
+    if flouz.ETAT["en_cours"]:
+        raise HTTPException(409, "le LLM est deja en train de jouer")
+    try:
+        return await flouz.tour_llm(a_blanc)
+    except Exception as exc:
+        raise HTTPException(502, f"LLM indisponible : {exc}")
+
+
+@app.post("/api/flouz/reinitialiser")
+def route_flouz_reinit():
+    flouz.reinitialiser()
+    return {"ok": True}
+
+
 @app.get("/api/recommandations")
 async def route_recommandations():
     r = recommandations.charger()
@@ -423,6 +449,12 @@ def route_downup(spread_max: float = 20, asie: bool = False, tous: bool = False)
               and (tous or l["downup"])]
     lignes.sort(key=lambda l: (not (l["downup"] and l["en_phase_down"]), -l["reussis"], -(l["taux"] or 0)))
     return {"heure": data["heure"], "total": len(data["lignes"]), "lignes": lignes[:300]}
+
+
+@app.get("/api/rebonds/avant")
+def route_avant_rebond():
+    """Titres qui chutent aujourd'hui, classes selon leur historique de rebond (a acheter AVANT)."""
+    return explications.avant_rebond()
 
 
 @app.get("/api/rebonds")

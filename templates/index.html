@@ -313,6 +313,20 @@ tbody tr.sel td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
 .hl-box b { display: block; font: 600 13px "Geist Mono"; color: var(--ink); margin-top: 2px; }
 .hl-sit { margin-top: 8px; padding: 8px 10px; border-radius: 8px; font-size: 12.5px; background: var(--panel-3); }
 .hl-sit.bas { background: var(--down-2); color: var(--down); } .hl-sit.haut { background: var(--up-2); color: var(--up); }
+.fz { padding: 12px; display: grid; gap: 12px; }
+.fz-wal { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.fz-card { border: 1px solid var(--line); border-radius: 12px; background: var(--panel-2); padding: 14px 16px; }
+.fz-card h3 { margin: 0 0 2px; font-size: 13px; display: flex; gap: 8px; align-items: center; }
+.fz-card .big { font: 600 26px "Geist Mono"; letter-spacing: -.02em; margin: 6px 0 2px; }
+.fz-card .sub { font-size: 12px; color: var(--ink-3); display: flex; gap: 12px; flex-wrap: wrap; }
+.fz table { width: 100%; font-size: 12px; }
+.fz th { position: static; }
+.fz td, .fz th { padding: 6px 8px; text-align: right; }
+.fz td.l, .fz th.l { text-align: left; }
+.fz .jr { border-top: 1px solid var(--line); padding: 8px 0; font-size: 12.5px; line-height: 1.45; white-space: pre-line; }
+.fz .jr small { display: block; color: var(--ink-3); font-size: 11px; }
+.fz .blanc { font: 600 10px Geist; padding: 1px 5px; border-radius: 4px; background: var(--panel-3); color: var(--ink-3); margin-left: 6px; }
+@media (max-width: 900px) { .fz-wal { grid-template-columns: 1fr; } }
 .cat.inconnu { background: var(--panel-2); color: var(--ink-3); border: 1px solid var(--line); }
 .why { display: flex; align-items: center; gap: 8px; min-width: 250px; max-width: 420px; white-space: normal; text-align: left; }
 .why .c { font-size: 12px; color: var(--ink-2); line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
@@ -329,6 +343,16 @@ td.whytd { text-align: left; }
 .rc .mv { display: flex; align-items: center; gap: 10px; margin: 12px 0 10px; font: 600 20px "Geist Mono"; letter-spacing: -.02em; }
 .rc .mv small { display: block; font: 500 10.5px Geist; color: var(--ink-3); letter-spacing: .04em; text-transform: uppercase; }
 .rc .mv .arr { color: var(--ink-4); font-size: 16px; }
+.av-sec { grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; padding: 6px 2px 0; font-size: 12px; font-weight: 600;
+  letter-spacing: .05em; text-transform: uppercase; color: var(--ink-2); cursor: pointer; user-select: none; }
+.av-sec .chev { display: inline-block; transition: transform .15s; transform: rotate(90deg); color: var(--ink-3); }
+.av-sec.ferme .chev { transform: none; }
+.av-sec small { font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--ink-3); }
+.rc .raisons { margin: 8px 0 0; padding-left: 16px; font-size: 12px; line-height: 1.45; color: var(--ink-2); }
+.cat.habituel { background: var(--up-2); color: var(--up); }
+.cat.a_confirmer { background: var(--warn-2); color: var(--warn); }
+.cat.couteau { background: var(--down-2); color: var(--down); }
+#v-rebonds [hidden], #tb-rebonds [hidden] { display: none !important; }
 .rc .why2 { display: grid; grid-template-columns: 64px 1fr; gap: 4px 10px; font-size: 12.5px; line-height: 1.4; margin-top: 8px; }
 .rc .why2 span:nth-child(odd) { color: var(--ink-3); font-size: 11.5px; padding-top: 1px; }
 .rc .foot { display: flex; gap: 8px; align-items: center; margin-top: 10px; font-size: 11.5px; color: var(--ink-3); flex-wrap: wrap; }
@@ -734,6 +758,10 @@ td.whytd { text-align: left; }
       <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 8L9 4l-3 8H2"/></svg>
       <span class="badge" id="b-live" hidden></span><span class="tip">Live · ça bouge maintenant <kbd>7</kbd></span>
     </button>
+    <button class="nav" data-view="flouz" aria-label="FLOUZMULATEUR">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h12"/><path d="M4 14h9"/><path d="M19 6a7.7 7.7 0 0 0-5.2-2A7.9 7.9 0 0 0 6 12c0 4.4 3.5 8 7.8 8 2 0 3.8-.8 5.2-2"/></svg>
+      <span class="tip">FLOUZMULATEUR · le LLM trade en virtuel</span>
+    </button>
     <button class="nav" data-view="alertes" aria-label="Historique des alertes">
       <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/><path d="M12 5v4l2 1"/></svg>
       <span class="tip">Historique des alertes</span>
@@ -828,6 +856,7 @@ td.whytd { text-align: left; }
             <button class="chip" id="m-trous" aria-pressed="true" title="Historique TR arrêté depuis plus de 4 jours : la référence est périmée (souvent une suspension de cotation)"><span class="ck"></span>Sans historique interrompu</button>
           </div>
           <div class="toolbar" id="tb-rebonds" hidden>
+            <div class="seg" id="r-mode"><button data-m="faits" class="on">Ont rebondi</button><button data-m="avant">Avant le rebond</button></div>
             <div class="seg" id="r-jours"></div>
             <span class="count-lbl" id="r-info"></span>
             <span class="grow"></span>
@@ -868,6 +897,11 @@ td.whytd { text-align: left; }
             <label class="field" title="Ce que l'IA doit chercher dans les tweets">Je cherche<input id="tw-consigne" type="text"></label>
             <button class="btn primary" id="tw-lire" style="height:30px">Lire avec l'IA</button>
             <span class="count-lbl" id="tw-info" style="flex-basis:100%"></span>
+          </div>
+          <div class="toolbar" id="tb-flouz" hidden>
+            <button class="btn primary" id="fz-jouer">▶ Faire jouer le LLM</button>
+            <span class="count-lbl" id="fz-info"></span><span class="grow"></span>
+            <button class="btn" id="fz-reset" title="Remet les deux portefeuilles à 1000 € (efface l'historique)">Réinitialiser</button>
           </div>
           <div class="toolbar" id="tb-alertes" hidden>
             <div class="seg" id="h-per"><button data-p="1">24 h</button><button data-p="7">7 j</button><button data-p="0" class="on">Tout</button></div>
@@ -910,7 +944,14 @@ td.whytd { text-align: left; }
               <th class="hide-m hide-l" id="m-th-ref">Veille</th><th>Actuel</th><th title="Prix auquel tu achètes">Ask</th><th>Spread</th><th style="width:40px"></th>
             </tr></thead><tbody id="t-moves"></tbody></table>
           </div>
-          <div class="scroll" id="v-rebonds" hidden><div class="rgrid" id="g-rebonds"></div></div>
+          <div class="scroll" id="v-rebonds" hidden><div class="rgrid" id="g-rebonds"></div>
+            <div id="av-zone" hidden>
+              <div class="avert">⚠ <b>Pas une prédiction.</b> Titres qui chutent d'au moins 10 % aujourd'hui (spread ≤ 20 %), classés selon <b>leur propre passé</b> sur le mois :
+                <b class="up">rebond habituel</b> (au moins 2 chutes passées rachetées ≥ 60 % du temps, DOWN/UP confirmé ou oscillateur au support),
+                <b style="color:var(--warn)">à confirmer</b> (une seule chute passée, rachetée), <b class="down">couteau qui tombe</b> (aucun rebond connu).
+                <b>Net attendu</b> = rebond moyen passé − spread. Vérifie la cause de la chute avant d'acheter.</div>
+              <div class="rgrid" id="g-avant"></div>
+            </div></div>
           <div class="scroll" id="v-downup" hidden><div class="dgrid" id="g-downup"></div></div>
           <div class="scroll" id="v-ranges" hidden><div class="dgrid" id="g-ranges"></div></div>
           <div class="scroll" id="v-simu" hidden>
@@ -926,6 +967,7 @@ td.whytd { text-align: left; }
             <table><thead><tr><th class="rk">#</th><th class="l">Titre</th><th>Variation</th><th>Bid</th><th title="Prix auquel tu achètes">Ask</th><th class="hide-m">Précédent</th><th>Spread</th><th style="width:40px"></th></tr></thead>
             <tbody id="t-live"></tbody></table>
           </div>
+          <div class="scroll" id="v-flouz" hidden><div class="fz" id="fz"></div></div>
           <div class="scroll" id="v-alertes" hidden><div class="histo" id="h-list"></div></div>
           <div class="scroll" id="v-watch" hidden><div class="wgrid" id="g-watch"></div></div>
           <div class="scroll" id="v-tweets" hidden>
@@ -1120,7 +1162,7 @@ $("#theme").onclick = basculerTheme;
 
 // ================================================================= état
 // Ordre des vues = ordre de la barre latérale = touches 1 à 9
-const ORDRE = ["reco", "picks", "moves", "rebonds", "downup", "ranges", "simu", "live", "watch", "tweets", "alertes"];
+const ORDRE = ["reco", "picks", "moves", "rebonds", "downup", "ranges", "simu", "live", "watch", "tweets", "flouz", "alertes"];
 let RECOS = [], TWEETS = [];
 let PICKS = [], LIVE = [], WLIST = [], MOVES = [], REBONDS = [], DOWNUP = [], SIMU = [], RANGES_V = [], WATCH = new Set();
 let vue = "picks", tri = { k: "score", dir: -1 }, selIsin = null, lignesVisibles = [];
@@ -1136,6 +1178,7 @@ const VUES = {
   live: ["Live", "Ce qui bouge en ce moment sur tout l'univers Trade Republic"],
   watch: ["Watchlist", "Tes titres suivis, en temps réel"],
   tweets: ["News Twitter · signaux", "Les actions Trade Republic citées sur X par les comptes suivis"],
+  flouz: ["FLOUZMULATEUR", "Le LLM trade un portefeuille virtuel contre un robot à règles fixes · quels motifs se répètent et rapportent ?"],
   alertes: ["Historique des alertes", "Toutes les alertes reçues, par jour · clique pour ouvrir le titre ou le tweet"],
 };
 function allerVue(v) {
@@ -1152,12 +1195,13 @@ function allerVue(v) {
   if (v === "reco") chargerReco();
   if (v === "tweets") chargerTweets();
   if (v === "alertes") chargerHisto();
+  if (v === "flouz") chargerFlouz();
   majLignesVisibles();
 }
 $$(".nav[data-view]").forEach(b => b.onclick = () => allerVue(b.dataset.view));
 
 function majLignesVisibles() {
-  const src = { reco: () => RECOS, picks: () => filtrer(), moves: () => movesFiltres(), rebonds: () => REBONDS, downup: () => DOWNUP, simu: () => SIMU, ranges: () => RANGES_V, live: () => LIVE, watch: () => WLIST, tweets: () => tweetsFiltres(), alertes: () => histoFiltre().filter(a => a.isin) }[vue];
+  const src = { reco: () => RECOS, picks: () => filtrer(), moves: () => movesFiltres(), rebonds: () => rMode === "avant" ? AVANT.filter(x => !AV_PLIS[x.categorie]) : REBONDS, downup: () => DOWNUP, simu: () => SIMU, ranges: () => RANGES_V, live: () => LIVE, watch: () => WLIST, tweets: () => tweetsFiltres(), alertes: () => histoFiltre().filter(a => a.isin), flouz: () => FLOUZ_LIGNES }[vue];
   lignesVisibles = src().map(l => l.isin);
 }
 
@@ -1372,7 +1416,10 @@ document.addEventListener("click", async e => {
 
 // ===================================================== rebonds du jour
 let rJour = null;
+let rMode = "faits", AVANT = [];
+const AV_PLIS = { couteau: true };  // les couteaux sont replies par defaut
 async function chargerRebonds() {
+  if (rMode === "avant") return chargerAvant();
   const r = await api("/api/rebonds" + (rJour ? "?jour=" + rJour : "")).catch(() => null);
   if (!r) return;
   REBONDS = r.lignes;
@@ -1397,6 +1444,40 @@ async function chargerRebonds() {
   }).join("") : `<div class="empty" style="grid-column:1/-1"><b>Aucun rebond ${r.jour === r.aujourd_hui ? "pour l'instant" : "ce jour-là"}</b>Aucun titre n'a chuté de ≥ 10 % la veille puis remonté de ≥ 10 %.</div>`;
   if (vue === "rebonds") majLignesVisibles();
 }
+// ------------------------------------------------ "avant le rebond" : chutes du jour classees par leur passe
+const AV_LIB = { habituel: ["Rebond habituel", "à regarder pour acheter"], a_confirmer: ["À confirmer", "une seule chute passée rachetée"],
+  couteau: ["Couteau qui tombe", "aucun rebond connu : on n'achète pas"] };
+async function chargerAvant() {
+  const r = await api("/api/rebonds/avant").catch(() => null);
+  if (!r) return;
+  AVANT = r.lignes; rendreAvant(r);
+}
+function rendreAvant(r) {
+  const n = c => AVANT.filter(x => x.categorie === c).length;
+  $("#r-info").innerHTML = `<b>${AVANT.length}</b> chute(s) ≥ 10 % · <b class="up">${n("habituel")}</b> rebond habituel · <b style="color:var(--warn)">${n("a_confirmer")}</b> à confirmer · séance du ${r?.jour ? new Date(r.jour).toLocaleDateString("fr-FR") : "—"}`;
+  $("#g-avant").innerHTML = ["habituel", "a_confirmer", "couteau"].map(c => {
+    const L = AVANT.filter(x => x.categorie === c);
+    return `<div class="av-sec ${AV_PLIS[c] ? "ferme" : ""}" data-avc="${c}"><span class="chev">▸</span><span class="cat ${c}">${AV_LIB[c][0]}</span>${L.length}<small>· ${AV_LIB[c][1]}</small></div>`
+      + (AV_PLIS[c] ? "" : L.length ? L.map(x => `<div class="rc ${x.isin === selIsin ? "sel" : ""}" data-isin="${x.isin}">
+        <div class="h">${avatar(x.nom, x.isin)}<div style="min-width:0;flex:1"><div style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(x.nom)}</div>
+          <div class="faint mono" style="font-size:11px">${x.isin}</div></div><span class="cat ${c}">${AV_LIB[c][0]}</span>${etoile(x.isin)}</div>
+        <div class="mv"><div><small>Aujourd'hui</small><span class="down">${pct(x.var_1j, true)}</span></div>
+          <div><small>Rebond moyen passé</small><span class="${x.rebond_attendu ? "up" : "faint"}">${x.rebond_attendu ? "+" + x.rebond_attendu + " %" : "—"}</span></div>
+          <div style="margin-left:auto;text-align:right"><small>Net après spread</small><span class="${(x.net_attendu ?? -1) > 0 ? "up" : "down"}" style="font-size:16px">${x.net_attendu == null ? "—" : pct(x.net_attendu, true)}</span></div></div>
+        ${x.raisons.length ? `<ul class="raisons">${x.raisons.map(t => `<li>${esc(t)}</li>`).join("")}</ul>` : '<div class="faint" style="font-size:12px">Aucun historique de rebond sur le mois.</div>'}
+        ${x.cause ? `<div class="why2"><span>Cause</span><span>${x.cause_categorie ? catTag({ categorie: x.cause_categorie }) + " " : ""}${esc(x.cause)}</span></div>` : ""}
+        <div class="foot">${spTag(x.spread_pct)}<span>bid ${px(x.bid)} · ask ${px(x.ask)}</span>${x.hors_fuseau ? '<span class="flag asie">asie</span>' : ""}</div>
+      </div>`).join("") : `<div class="faint" style="grid-column:1/-1;font-size:12px;padding:4px 2px 8px">Aucun titre dans cette catégorie aujourd'hui.</div>`);
+  }).join("");
+  if (vue === "rebonds") majLignesVisibles();
+}
+$("#g-avant").onclick = e => { const h = e.target.closest("[data-avc]"); if (h) { AV_PLIS[h.dataset.avc] = !AV_PLIS[h.dataset.avc]; rendreAvant(); } };
+$("#r-mode").onclick = e => {
+  const b = e.target.closest("button"); if (!b) return;
+  rMode = b.dataset.m; $$("#r-mode button").forEach(x => x.classList.toggle("on", x === b));
+  $("#g-rebonds").hidden = rMode !== "faits"; $("#r-jours").hidden = rMode !== "faits"; $("#av-zone").hidden = rMode !== "avant";
+  rMode === "avant" ? chargerAvant() : chargerRebonds();
+};
 $("#r-jours").onclick = e => { const b = e.target.closest("button"); if (b) { rJour = b.dataset.j; chargerRebonds(); } };
 
 // ============================================================== alertes
@@ -1467,6 +1548,67 @@ function ligneAlerte(a, lu = Infinity, histo = false) {
                 : `<div class="t3">${h.toLocaleString("fr-FR", { weekday: "short", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</div>`}</div>
       ${histo ? `<div class="hh">${h.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}</div>` : ""}</div>`;
 }
+
+// ------------------------------------------------ FLOUZMULATEUR
+let FLOUZ = null, FLOUZ_LIGNES = [];
+const euro = x => x == null ? "—" : `${x >= 0 ? "" : "−"}${Math.abs(x).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
+async function chargerFlouz() {
+  const r = await api("/api/flouz").catch(() => null);
+  if (!r) { $("#fz").innerHTML = `<div class="fl bad">Erreur de connexion au serveur</div>`; return; }
+  FLOUZ = r; rendreFlouz();
+}
+function rendreFlouz() {
+  const r = FLOUZ, d = s => new Date(s).toLocaleString("fr-FR", { weekday: "short", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+  FLOUZ_LIGNES = [...r.llm.positions, ...r.robot.positions];
+  $("#fz-info").innerHTML = `${r.en_seance ? '<b class="up">séance ouverte</b> : le LLM joue toutes les ' + r.regles.llm_min + " min" : "hors séance : le LLM joue <b>à blanc</b> (rien n'est exécuté)"}
+    · ${r.regles.positions_max} positions max · ${r.regles.mise_max} € max par achat · spread ≤ ${r.regles.spread_max} %${r.etat.en_cours ? " · <b>le LLM réfléchit…</b>" : ""}${r.etat.erreur ? ` · <span class="down">${esc(r.etat.erreur)}</span>` : ""}`;
+  const carte = (p, nom, sous) => `<div class="fz-card"><h3>${nom}<span class="faint" style="font-weight:400;font-size:11.5px">${sous}</span></h3>
+      <div class="big ${p.pnl >= 0 ? "up" : "down"}">${euro(p.valeur)}</div>
+      <div class="sub"><span class="${p.pnl >= 0 ? "up" : "down"}">${p.pnl >= 0 ? "+" : ""}${euro(p.pnl)} (${pct(p.pnl_pct, true)})</span><span>liquidités ${euro(p.cash)}</span>
+        <span>${p.positions.length} position(s)</span><span>${p.fermees.length} trade(s) fermé(s)</span></div></div>`;
+  const positions = (p, titre) => !p.positions.length ? "" : `<div class="fz-card"><h3>${titre} · positions ouvertes</h3><table>
+      <thead><tr><th class="l">Titre</th><th class="l">Motif</th><th>Achat</th><th>Bid</th><th>Objectif</th><th>Stop</th><th>Résultat</th><th>Séances</th></tr></thead>
+      <tbody>${p.positions.map(x => `<tr data-isin="${x.isin}" title="${esc(x.raison || "")}"><td class="l"><b>${esc(x.nom)}</b></td><td class="l">${esc(x.motif)}</td>
+        <td>${px(x.prix_achat)}</td><td>${px(x.bid)}</td><td class="up">${px(x.objectif)}</td><td class="down">${px(x.stop)}</td>
+        <td class="${(x.pnl_latent_pct ?? 0) >= 0 ? "up" : "down"}">${x.pnl_latent_pct == null ? "—" : pct(x.pnl_latent_pct, true)}</td><td>${x.seances}</td></tr>`).join("")}</tbody></table></div>`;
+  const stats = [["LLM", r.llm.stats], ["Robot", r.robot.stats]].filter(([, s]) => s.length);
+  $("#fz").innerHTML = `
+    <div class="avert">⚠ <b>Argent virtuel.</b> Achat au prix ask et vente au bid <b>réels</b> du moment, 1 € de frais par ordre. Le LLM choisit ses trades et
+      annonce pour chacun <b>le motif</b> sur lequel il parie ; le code vérifie budget, liquidité et spread, puis déclenche objectifs et stops toutes les 5 min.
+      Le robot applique des règles fixes (achat près du support, vente à la résistance) pour comparer. Départ : ${new Date(r.debut).toLocaleDateString("fr-FR")}.</div>
+    <div class="fz-wal">${carte(r.llm, "🧠 LLM", "décide seul, motif par motif")}${carte(r.robot, "🤖 Robot", "règles fixes sur les oscillateurs")}</div>
+    <div class="fz-card"><h3>Motifs qui se répètent ?<span class="faint" style="font-weight:400;font-size:11.5px">trades fermés, par motif</span></h3>${stats.length ? `<table>
+      <thead><tr><th class="l">Portefeuille</th><th class="l">Motif</th><th>Trades</th><th>Gagnants</th><th>Résultat</th><th>Moyenne</th><th>Durée moy.</th></tr></thead>
+      <tbody>${stats.map(([n, ss]) => ss.map(x => `<tr><td class="l">${n}</td><td class="l"><b>${esc(x.motif)}</b></td><td>${x.n}</td><td>${x.gagnants} (${x.taux} %)</td>
+        <td class="${x.pnl >= 0 ? "up" : "down"}">${euro(x.pnl)}</td><td>${pct(x.pnl_moy_pct, true)}</td><td>${x.seances_moy} séances</td></tr>`).join("")).join("")}</tbody></table>`
+      : `<div class="faint" style="font-size:12px;padding:8px 0">Pas encore de trade fermé. Les statistiques apparaissent après les premières ventes (objectif, stop ou décision du LLM).</div>`}</div>
+    ${positions(r.llm, "🧠 LLM")}${positions(r.robot, "🤖 Robot")}
+    <div class="fz-wal">
+      <div class="fz-card"><h3>🧠 Journal du LLM</h3>${r.llm.journal.length ? r.llm.journal.map(j => `<div class="jr"><small>${d(j.heure)}${j.a_blanc ? '<span class="blanc">à blanc</span>' : ""}</small>${esc(j.texte)}</div>`).join("")
+        : '<div class="faint" style="font-size:12px">Clique « Faire jouer le LLM » pour son premier tour.</div>'}</div>
+      <div class="fz-card"><h3>Trades fermés</h3>${[...r.llm.fermees.map(x => ["🧠", x]), ...r.robot.fermees.map(x => ["🤖", x])].sort((a, b) => b[1].vente.localeCompare(a[1].vente)).slice(0, 40)
+        .map(([w, x]) => `<div class="jr" data-isin="${x.isin}"><small>${w} ${d(x.vente)} · ${esc(x.motif)} · ${x.seances} séance(s)</small><b>${esc(x.nom)}</b>
+          ${px(x.prix_achat)} → ${px(x.prix_vente)} <b class="${x.pnl >= 0 ? "up" : "down"}">${euro(x.pnl)} (${pct(x.pnl_pct, true)})</b><br><span class="faint">${esc(x.raison_vente)}</span></div>`).join("")
+        || '<div class="faint" style="font-size:12px">Aucun pour l\'instant.</div>'}</div>
+    </div>`;
+  if (vue === "flouz") majLignesVisibles();
+}
+$("#fz-jouer").onclick = async () => {
+  const b = $("#fz-jouer"); b.disabled = true; b.textContent = "Le LLM réfléchit… (~1 min)";
+  const r = await api("/api/flouz/tour", { method: "POST" }).catch(e => ({ erreur: String(e) }));
+  b.disabled = false; b.textContent = "▶ Faire jouer le LLM";
+  if (r?.faits) toast(`<b>${r.a_blanc ? "Tour à blanc" : "Tour joué"}</b><br><span class="muted">${esc(r.faits.join(" · ") || "aucune décision")}</span>`);
+  else toast("LLM indisponible");
+  chargerFlouz();
+};
+// double clic de confirmation (pas de confirm() : il bloquerait la page)
+$("#fz-reset").onclick = async () => {
+  const b = $("#fz-reset");
+  if (b.dataset.ok !== "1") { b.dataset.ok = "1"; b.textContent = "Confirmer ?"; setTimeout(() => { b.dataset.ok = ""; b.textContent = "Réinitialiser"; }, 3000); return; }
+  await api("/api/flouz/reinitialiser", { method: "POST" }).catch(() => null);
+  b.dataset.ok = ""; b.textContent = "Réinitialiser"; toast("Portefeuilles remis à 1000 €"); chargerFlouz();
+};
+setInterval(() => { if (vue === "flouz") chargerFlouz(); }, 60000);
 
 // ------------------------------------------------ page Historique des alertes
 const HISTO = { tout: [], per: 0, q: "", types: null, total: 0 };
@@ -2197,7 +2339,7 @@ document.addEventListener("click", e => {
   const st = e.target.closest("[data-star]");
   if (st) { e.stopPropagation(); basculerSuivi(st.dataset.star); return; }
   if (e.target.closest("[data-why], a, #apanel, #bell, [data-rgdel], [data-rearm]")) return;
-  const row = e.target.closest("tr[data-isin], .wc[data-isin], .rc[data-isin], .dc[data-isin], .pod[data-isin], .pp[data-isin], .reco[data-isin], .tick[data-isin]");
+  const row = e.target.closest("tr[data-isin], .wc[data-isin], .rc[data-isin], .dc[data-isin], .pod[data-isin], .pp[data-isin], .reco[data-isin], .tick[data-isin], .jr[data-isin]");
   if (row) selectionner(row.dataset.isin);
 });
 
