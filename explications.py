@@ -215,7 +215,7 @@ def alerter(type_: str, l: dict, e: dict, cle: str | None = None, extra: dict | 
         "categorie": e.get("categorie"), "cause": e.get("cause_jour"), "cause_veille": e.get("cause_veille"),
         "heure": datetime.now(picks.PARIS).isoformat(timespec="seconds"), **(extra or {}),
     })
-    FICHIER_ALERTES.write_text(json.dumps(alertes[-300:], ensure_ascii=False), encoding="utf-8")
+    FICHIER_ALERTES.write_text(json.dumps(alertes[-3000:], ensure_ascii=False), encoding="utf-8")  # ~1 mois d'historique
 
 
 async def journal_cotes() -> None:

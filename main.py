@@ -270,11 +270,12 @@ async def route_tweets_lire(jours: int = 7, consigne: str = tweets.CONSIGNE_DEFA
 
 
 @app.get("/api/alertes")
-def route_alertes(depuis: int = 0):
-    """Alertes plus recentes que l'id `depuis` (le navigateur garde le dernier vu)."""
+def route_alertes(depuis: int = 0, limite: int = 50):
+    """Alertes plus recentes que l'id `depuis` (le navigateur garde le dernier vu).
+    limite=3000 pour la page Historique."""
     a = explications.charger_alertes()
-    return {"dernier_id": a[-1]["id"] if a else 0,
-            "alertes": [x for x in reversed(a) if x["id"] > depuis][:50]}
+    return {"dernier_id": a[-1]["id"] if a else 0, "total": len(a),
+            "alertes": [x for x in reversed(a) if x["id"] > depuis][:max(1, min(limite, 3000))]}
 
 
 # --------------------------------------------------- alertes personnalisees
@@ -384,6 +385,13 @@ async def route_recommandations():
     if r["heure"] is None:  # jamais calcule : on le fait tout de suite (~5 s)
         r = await recommandations.calculer()
     return r
+
+
+@app.get("/api/oscillateurs")
+def route_oscillateurs(prix_min: float = 0.001, prix_max: float = 0.10, rebond_min: float = 30,
+                       spread_max: float = 25, net_min: float = 10):
+    """Penny stocks qui oscillent regulierement support <-> resistance (type Erda, Anoto)."""
+    return recommandations.oscillateurs(prix_min, prix_max, rebond_min, spread_max, net_min)
 
 
 # ------------------------------------------------ rebond sur plancher

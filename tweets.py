@@ -15,10 +15,12 @@ compte (BFM Bourse), ca couvre environ une journee.
 from __future__ import annotations
 
 import hashlib
+import html
 import json
 import re
 import time
 import unicodedata
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 
 import requests
@@ -113,6 +115,109 @@ def chercher(nom: str, isin: str | None = None, jours: int = 30, limite: int = 1
             tweets.append(t)
     tweets.sort(key=lambda t: t["date"], reverse=True)
     return tweets[:limite]
+
+
+# ---------------------------------------------------------------- apercu des liens (article)
+# Les tweets ne contiennent que des liens raccourcis (dlvr.it, ebx.sh, l.bfmtv.com). On suit le
+# lien jusqu'a l'article et on lit ses balises Open Graph (titre, resume, image) : c'est ce que
+# X affiche sous un tweet. Cache permanent : un lien n'est resolu qu'une fois.
+FICHIER_LIENS = BASE / "tweets_liens.json"
+NAVIGATEUR = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128 Safari/537.36",
+              "Accept-Language": "fr-FR,fr;q=0.9,en;q=0.8"}
+_LIENS: dict | None = None
+
+
+_BALISE_META = re.compile(r"<meta\b[^>]*>", re.I)
+_ATTRIBUT = re.compile(r"""([\w:-]+)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'>]+))""")
+
+
+def _metas(page: str) -> dict[str, str]:
+    """{og:title: ..., description: ...} de toutes les balises <meta>, en UN passage lineaire.
+    Bug du 26/09 : une regex `<meta[^>]+...content=(["'])(.*?)\\1` avec re.S parcourait toute la
+    page depuis chaque <meta (quadratique sur 400 Ko) sans relacher le GIL -> serveur gele."""
+    res: dict[str, str] = {}
+    for balise in _BALISE_META.findall(page[:400_000]):
+        attrs = {m.group(1).lower(): next(v for v in m.groups()[1:] if v is not None) for m in _ATTRIBUT.finditer(balise)}
+        cle = (attrs.get("property") or attrs.get("name") or "").lower()
+        if cle and "content" in attrs and cle not in res:
+            res[cle] = html.unescape(attrs["content"]).strip()
+    return res
+
+
+def _meta(metas: dict[str, str], nom: str) -> str | None:
+    return metas.get(nom) or None
+
+
+def _lire_page(r: requests.Response, max_octets: int = 400_000, max_s: float = 10.0) -> str:
+    """Lit AU PLUS max_octets en max_s secondes. Bug du 26/09 : `r.text` telechargeait tout
+    (video, flux sans fin) puis lancait la detection d'encodage sur des Mo -> calcul qui garde
+    le GIL et gele TOUT le serveur. timeout=8 ne borne que l'attente entre deux paquets."""
+    debut, morceaux, taille = time.monotonic(), [], 0
+    for bloc in r.iter_content(16_384):
+        morceaux.append(bloc)
+        taille += len(bloc)
+        if taille >= max_octets or time.monotonic() - debut > max_s:
+            break
+    r.close()
+    # sans charset dans l'en-tete, requests suppose ISO-8859-1 : les accents seraient casses
+    brut = b"".join(morceaux)[:max_octets]
+    enc = r.encoding if "charset" in r.headers.get("Content-Type", "").lower() else None
+    if not enc:  # sinon <meta charset="..."> dans les 4 premiers Ko (ABC Bourse : "modèles" -> "mod?les")
+        m = re.search(rb"charset=[\"']?([\w-]+)", brut[:4096], re.I)
+        enc = m.group(1).decode() if m else "utf-8"
+    try:
+        return brut.decode(enc, errors="replace")
+    except LookupError:
+        return brut.decode("utf-8", errors="replace")
+
+
+def _resoudre(url: str) -> dict:
+    try:
+        r = requests.get(url, headers=NAVIGATEUR, timeout=8, allow_redirects=True, stream=True)
+        if "html" not in r.headers.get("Content-Type", "html").lower():  # image, video, pdf : pas d'apercu
+            r.close()
+            return {"url": r.url, "titre": None}
+        page = _lire_page(r)
+    except requests.RequestException:
+        return {"url": url, "titre": None}
+    metas = _metas(page)
+    fin = _meta(metas, "og:url") or r.url
+    ap = {"url": fin if fin.startswith("http") else r.url, "titre": _meta(metas, "og:title") or _meta(metas, "twitter:title"),
+          "resume": (_meta(metas, "og:description") or _meta(metas, "description") or "")[:300] or None,
+          "image": _meta(metas, "og:image"), "site": _meta(metas, "og:site_name")}
+    if not ap["titre"] and re.search(r"(youtube\.com|youtu\.be)/", r.url):  # YouTube cache ses balises : oEmbed
+        try:
+            o = requests.get("https://www.youtube.com/oembed", params={"url": r.url, "format": "json"}, timeout=8).json()
+            ap.update(titre=o.get("title"), image=o.get("thumbnail_url"), site="YouTube · " + (o.get("author_name") or ""))
+        except (requests.RequestException, ValueError):
+            pass
+    if not ap["site"]:
+        ap["site"] = re.sub(r"^www\.", "", re.sub(r"^https?://([^/]+).*", r"\1", ap["url"]))
+    return ap
+
+
+def apercus(urls: list[str]) -> dict[str, dict]:
+    """url courte -> apercu {url, titre, resume, image, site}. Resout en parallele ce qui manque."""
+    global _LIENS
+    if _LIENS is None:
+        try:
+            _LIENS = json.loads(FICHIER_LIENS.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            _LIENS = {}
+    manquants = [u for u in dict.fromkeys(urls) if u not in _LIENS]
+    if manquants:
+        with ThreadPoolExecutor(8) as ex:
+            for u, ap in zip(manquants, ex.map(_resoudre, manquants)):
+                _LIENS[u] = ap
+        FICHIER_LIENS.write_text(json.dumps(_LIENS, ensure_ascii=False), encoding="utf-8")
+    return {u: _LIENS[u] for u in urls if u in _LIENS}
+
+
+def _ajouter_apercus(groupes: list[dict]) -> None:
+    tous = [t for g in groupes for t in g["tweets"]]
+    ap = apercus([u for t in tous for u in t.get("liens", [])])
+    for t in tous:
+        t["apercus"] = [ap[u] for u in t.get("liens", []) if ap.get(u, {}).get("titre")]
 
 
 # ---------------------------------------------------------------- onglet "News Twitter · signaux"
@@ -243,6 +348,7 @@ def signaux(noms: dict[str, str], cotations: dict[str, dict], jours: int = 7) ->
         posts.sort(key=lambda t: t["date"], reverse=True)
         flux[cat] = {"isin": cat.upper(), "nom": FLUX[cat], "comptes": cfg.get(cat, []), "tweets": posts}
 
+    _ajouter_apercus(lignes + list(flux.values()))
     return {"heure": datetime.now(timezone.utc).isoformat(timespec="seconds"),
             "comptes": comptes, "tweets_lus": lus, "jours": jours, "lignes": lignes, "flux": flux}
 
@@ -327,7 +433,7 @@ TYPES_IA = ("prediction", "objectif", "recommandation", "resultats", "news", "te
 
 SYSTEME_LLM = """Tu lis des tweets boursiers pour un particulier. Pour CHAQUE tweet, dis s'il contient ce que l'utilisateur cherche.
 Les tweets peuvent être en arabe, anglais ou autre langue : réponds toujours en français.
-Utilise UNIQUEMENT le texte du tweet. N'invente aucun chiffre : un objectif de cours n'est rempli que s'il est écrit dans le tweet.
+Utilise UNIQUEMENT le texte du tweet et de l'article lié quand il est fourni. N'invente aucun chiffre : un objectif de cours n'est rempli que s'il est écrit dans le tweet ou l'article.
 Réponds par un tableau JSON et rien d'autre, un objet par tweet, dans le même ordre, avec exactement ces clés :
 {"n": numéro du tweet,
  "pertinent": true si le tweet contient ce que l'utilisateur cherche, sinon false,
@@ -389,7 +495,10 @@ def lire(data: dict, consigne: str = CONSIGNE_DEFAUT) -> dict:
     for i in range(0, len(a_lire), PAQUET):
         paquet = a_lire[i:i + PAQUET]
         texte = "\n\n".join(f"Tweet {n} — {_sujet(g, t)} — @{t['compte']} le {t['date'][:10]} :\n"
-                            f"{' '.join(t['texte'].split())[:600]}" for n, (g, t) in enumerate(paquet, 1))
+                            f"{' '.join(t['texte'].split())[:600]}"
+                            + "".join(f"\nArticle lié ({a['site']}) : {a['titre']} — {a.get('resume') or ''}"
+                                      for a in t.get("apercus", []))
+                            for n, (g, t) in enumerate(paquet, 1))
         try:
             rep = analyste._llm([
                 {"role": "system", "content": SYSTEME_LLM},

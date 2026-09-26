@@ -282,12 +282,37 @@ tbody tr.sel td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
 .tw .imgs.seul { grid-template-columns: 1fr; }
 .tw .imgs.seul img { height: auto; max-height: 360px; object-fit: contain; }
 .tw .imgs .vid { position: absolute; inset: 0; display: grid; place-items: center; color: #fff; font-size: 26px; text-shadow: 0 1px 6px rgba(0,0,0,.6); }
+.tw .ap { display: grid; grid-template-columns: 1fr 88px; gap: 10px; margin-top: 6px; padding: 8px 10px; border: 1px solid var(--line);
+  border-radius: 10px; background: var(--panel); color: inherit; text-decoration: none; }
+.tw .ap:hover { border-color: var(--accent); }
+.tw .ap.noimg { grid-template-columns: 1fr; }
+.tw .ap small { font-size: 10.5px; color: var(--ink-3); text-transform: uppercase; letter-spacing: .04em; }
+.tw .ap b { display: block; font-size: 12.5px; line-height: 1.35; margin: 2px 0; }
+.tw .ap span { font-size: 11.5px; color: var(--ink-2); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.tw .ap img { width: 88px; height: 64px; object-fit: cover; border-radius: 6px; align-self: center; }
 .tw .tags { display: flex; gap: 4px; flex-wrap: wrap; }
 .tw .tags span { font: 600 10px "Geist Mono"; padding: 1px 5px; border-radius: 4px; background: var(--panel-3); color: var(--ink-2); }
 #g-tweets[hidden], #g-crypto[hidden], #tw-ton[hidden] { display: none; }  /* display:grid/inline-flex ecrase [hidden] */
 .crypto-sec { grid-column: 1 / -1; }
 .crypto-sec .rgrid { padding: 0; }
 .tw[dir] .tt { unicode-bidi: plaintext; }
+.osc-svg { width: 100%; height: 86px; display: block; margin: 10px 0 4px; }
+.osc-svg .sup { stroke: var(--up); } .osc-svg .res { stroke: var(--down); }
+.osc-svg .c { fill: none; stroke: var(--accent); stroke-width: 1.6; }
+.osc-svg .hl { stroke: var(--ink-4); stroke-width: 2; }
+.osc-svg .pt { fill: var(--up); }
+.osc-kv { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; font-size: 11px; color: var(--ink-3); }
+.osc-kv b { display: block; font: 600 13px "Geist Mono"; color: var(--ink); white-space: nowrap; }
+.osc-pos { position: relative; height: 6px; border-radius: 3px; margin: 10px 0 2px; background: linear-gradient(90deg, var(--up-2), var(--panel-3), var(--down-2)); }
+.osc-pos i { position: absolute; top: -3px; width: 3px; height: 12px; border-radius: 2px; background: var(--ink); transform: translateX(-50%); }
+.osc-sub { display: flex; justify-content: space-between; font: 11px "Geist Mono"; color: var(--ink-3); }
+#r2-osc-f .field input { width: 64px; }
+#v-reco [hidden], #tb-reco [hidden] { display: none !important; }  /* display:grid/contents/inline-flex ecrasent [hidden] */
+.hl-box { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 6px; }
+.hl-box div { padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; font-size: 11px; color: var(--ink-3); }
+.hl-box b { display: block; font: 600 13px "Geist Mono"; color: var(--ink); margin-top: 2px; }
+.hl-sit { margin-top: 8px; padding: 8px 10px; border-radius: 8px; font-size: 12.5px; background: var(--panel-3); }
+.hl-sit.bas { background: var(--down-2); color: var(--down); } .hl-sit.haut { background: var(--up-2); color: var(--up); }
 .cat.inconnu { background: var(--panel-2); color: var(--ink-3); border: 1px solid var(--line); }
 .why { display: flex; align-items: center; gap: 8px; min-width: 250px; max-width: 420px; white-space: normal; text-align: left; }
 .why .c { font-size: 12px; color: var(--ink-2); line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
@@ -322,7 +347,53 @@ td.whytd { text-align: left; }
 .apanel .ah { display: flex; align-items: center; gap: 8px; padding: 12px 14px; border-bottom: 1px solid var(--line); }
 .apanel .ah b { flex: 1; font-size: 13.5px; }
 .apanel .opts { display: flex; gap: 6px; flex-wrap: wrap; padding: 10px 14px; border-bottom: 1px solid var(--line); }
-.apanel .lst { overflow-y: auto; }
+/* la liste prend la place restante : avant, filtres + mes alertes l'ecrasaient a 0 px */
+.apanel .lst { min-height: 60px; }
+.apanel { max-height: min(86vh, 900px); }
+.apanel .tout { flex: 1; display: block; padding: 10px; color: var(--accent); font-size: 12.5px; font-weight: 600; text-align: left; }
+/* pochettes : chaque bloc s'ouvre / se replie, les ouvertes se partagent la hauteur et defilent seules.
+   Le panneau se redimensionne par son coin bas-gauche (taille memorisee). */
+.apanel { resize: both; overflow: hidden; min-width: 300px; min-height: 180px; max-width: calc(100vw - 32px); direction: rtl; }
+.apanel > * { direction: ltr; }
+.apanel.taille { max-height: calc(100vh - 70px); }
+.poches { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+.poche { display: flex; flex-direction: column; min-height: 0; border-bottom: 1px solid var(--line); flex: 0 1 auto; }
+.poche:not(.ferme) { min-height: 110px; }               /* une pochette ouverte garde toujours de quoi montrer son contenu */
+.poche.ferme { flex: 0 0 auto; }                         /* repliee : juste son en-tete, jamais ecrasee */
+.poche.grande:not(.ferme) { flex: 1 1 auto; min-height: 140px; }
+.poche[data-poche="regles"]:not(.ferme) { min-height: 190px; }
+/* "Dernieres alertes" repliee : c'est "Mes alertes" qui prend toute la hauteur */
+.poches:has(.grande.ferme) .poche[data-poche="regles"]:not(.ferme) { flex: 1 1 auto; }
+.poche-h { display: flex; align-items: center; gap: 8px; width: 100%; padding: 9px 14px; font-size: 11px; font-weight: 600; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--ink-2); text-align: left; flex: none; }
+.poche-h:hover { background: var(--panel-2); color: var(--ink); }
+.poche-h .chev { display: inline-block; transition: transform .15s; color: var(--ink-3); transform: rotate(90deg); }
+.poche.ferme .poche-h .chev { transform: none; }
+.poche-n { font: 600 10.5px "Geist Mono"; padding: 1px 6px; border-radius: 9px; background: var(--panel-3); color: var(--ink-2); letter-spacing: 0; }
+.poche-n:empty { display: none; }
+.poche-i { margin-left: auto; font-size: 11px; font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--ink-3); }
+.poche-c { overflow-y: auto; min-height: 0; flex: 1 1 auto; }
+.poche.ferme .poche-c { display: none; }
+.poche[data-poche="types"]:not(.ferme) { min-height: 90px; }
+.poche[data-poche="types"] .poche-c { max-height: 150px; }
+.poche .opts, .poche .rgs { border-bottom: 0; max-height: none; }
+.a-pied { display: flex; align-items: center; gap: 8px; padding-right: 10px; border-top: 1px solid var(--line); flex: none; }
+.histo .jour { cursor: pointer; user-select: none; }
+.histo .jour:hover { color: var(--ink); }
+.histo .jour .chev { display: inline-block; margin-right: 6px; transition: transform .15s; transform: rotate(90deg); }
+.histo .jour.ferme .chev { transform: none; }
+.histo .jour.ferme + .jcont { display: none; }
+.apanel .tout:hover { background: var(--panel-2); }
+.histo { max-width: 980px; margin: 0 auto; padding: 4px 12px 24px; }
+.histo .jour { position: sticky; top: 0; z-index: 1; padding: 12px 4px 6px; font-size: 11px; font-weight: 600; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--ink-3); background: var(--panel); display: flex; }
+.histo .jour span { margin-left: auto; text-transform: none; letter-spacing: 0; font-weight: 400; }
+.histo .al { border: 1px solid var(--line); border-radius: 10px; margin-bottom: 6px; background: var(--panel); grid-template-columns: 34px 1fr auto; }
+.histo .al .hh { font: 12px "Geist Mono"; color: var(--ink-3); white-space: nowrap; }
+.histo .al .timg { max-height: 180px; }
+#h-types .chip .n { font: 600 10.5px "Geist Mono"; color: var(--ink-3); margin-left: 2px; }
+#h-q { width: 220px; }
+#v-alertes [hidden], #tb-alertes [hidden] { display: none !important; }
 .al { display: grid; grid-template-columns: 34px 1fr; gap: 10px; padding: 11px 14px; border-bottom: 1px solid var(--line); cursor: pointer; }
 .al:hover { background: var(--panel-2); }
 .al.new { background: color-mix(in srgb, var(--accent-2) 60%, transparent); }
@@ -663,6 +734,10 @@ td.whytd { text-align: left; }
       <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 8L9 4l-3 8H2"/></svg>
       <span class="badge" id="b-live" hidden></span><span class="tip">Live · ça bouge maintenant <kbd>7</kbd></span>
     </button>
+    <button class="nav" data-view="alertes" aria-label="Historique des alertes">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/><path d="M12 5v4l2 1"/></svg>
+      <span class="tip">Historique des alertes</span>
+    </button>
     <button class="nav" data-view="watch" aria-label="Watchlist">
       <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9z"/></svg>
       <span class="badge" id="b-watch" hidden></span><span class="tip">Watchlist <kbd>8</kbd></span>
@@ -719,8 +794,18 @@ td.whytd { text-align: left; }
         <!-- ================================================= liste -->
         <section class="card" id="list">
           <div class="toolbar" id="tb-reco" hidden>
-            <span class="count-lbl" id="r2-info"></span><span class="grow"></span>
-            <button class="chip" id="r2-bons" aria-pressed="false" title="Masquer les titres « à surveiller »"><span class="ck"></span>Fort et bon potentiel seulement</button>
+            <div class="seg" id="r2-mode"><button data-m="osc" class="on">Oscillateurs type Erda / Anoto</button><button data-m="reco">Recommandations</button></div>
+            <span id="r2-osc-f" style="display:contents">
+              <button class="chip" data-mk="canada" aria-pressed="true" title="TSXV, CSE"><span class="ck"></span>Canada</button>
+              <button class="chip" data-mk="euronext" aria-pressed="true" title="Euronext Paris, Growth, Bruxelles, Amsterdam"><span class="ck"></span>Euronext</button>
+              <button class="chip" data-mk="nordiques" aria-pressed="true" title="Stockholm, First North, Helsinki, Oslo (comme Anoto)"><span class="ck"></span>Nordiques</button>
+              <button class="chip" data-mk="autres" aria-pressed="false" title="Londres AIM, Australie…"><span class="ck"></span>Autres</button>
+              <label class="field">Prix ≤<input id="osc-pmax" type="number" value="0.10" min="0.001" step="0.01">€</label>
+              <label class="field">Rebond ≥<input id="osc-reb" type="number" value="30" min="10" step="5">%</label>
+            </span>
+            <span class="grow"></span>
+            <button class="chip" id="r2-bons" aria-pressed="false" title="Masquer les titres « à surveiller »" hidden><span class="ck"></span>Fort et bon potentiel seulement</button>
+            <span class="count-lbl" id="r2-info" style="flex-basis:100%"></span>
           </div>
           <div class="toolbar" id="tb-picks">
             <label class="field"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input class="wide" id="f-txt" placeholder="Filtrer la liste…"></label>
@@ -784,10 +869,24 @@ td.whytd { text-align: left; }
             <button class="btn primary" id="tw-lire" style="height:30px">Lire avec l'IA</button>
             <span class="count-lbl" id="tw-info" style="flex-basis:100%"></span>
           </div>
+          <div class="toolbar" id="tb-alertes" hidden>
+            <div class="seg" id="h-per"><button data-p="1">24 h</button><button data-p="7">7 j</button><button data-p="0" class="on">Tout</button></div>
+            <label class="field">Rechercher<input id="h-q" type="search" placeholder="titre, compte, cause…"></label>
+            <button class="btn" id="h-plier" style="height:28px" title="Replier / déplier tous les jours">⇕ Jours</button>
+            <span class="grow"></span><span class="count-lbl" id="h-info"></span>
+            <div id="h-types" style="display:flex;gap:6px;flex-wrap:wrap;flex-basis:100%"></div>
+          </div>
           <div class="toolbar" id="tb-watch" hidden><span class="count-lbl">Prix rafraîchis toutes les <b>10 s</b> · clique ☆ dans Picks ou Live pour ajouter</span></div>
 
           <div class="scroll" id="v-reco" hidden>
-            <div class="avert">⚠ <b>Ce n'est pas un conseil d'investissement.</b> Classement statistique sur un mois de cotations Lang &amp; Schwarz (prix de séance 9h – 17h30),
+            <div id="osc-zone">
+              <div class="avert">⚠ <b>Ce n'est pas un conseil d'investissement.</b> Titres qui ont fait, sur le dernier mois de séances Lang &amp; Schwarz (9h – 17h30),
+                au moins 2 allers <b>support → résistance</b> de +30 % ou plus, en retombant à peu près au même niveau.
+                <b>Gain / cycle</b> = achat à l'ask au support, revente au bid à la résistance. Un range peut casser à tout moment :
+                vérifie le <b>marché d'origine</b> dans la fiche et teste d'abord en achats fictifs.</div>
+              <div class="rgrid" id="g-osc"></div>
+            </div>
+            <div class="avert" id="reco-avert">⚠ <b>Ce n'est pas un conseil d'investissement.</b> Classement statistique sur un mois de cotations Lang &amp; Schwarz (prix de séance 9h – 17h30),
               en achetant à l'ask et en revendant au bid. <b>Constat :</b> une fois les artefacts retirés, <b>aucun titre ne fait ±20 % chaque jour</b> avec une marge après spread.
               Les titres ci-dessous combinent les meilleurs signaux réels. Teste-les d'abord avec des <b>achats fictifs</b>.</div>
             <div class="recos" id="g-reco"></div>
@@ -827,6 +926,7 @@ td.whytd { text-align: left; }
             <table><thead><tr><th class="rk">#</th><th class="l">Titre</th><th>Variation</th><th>Bid</th><th title="Prix auquel tu achètes">Ask</th><th class="hide-m">Précédent</th><th>Spread</th><th style="width:40px"></th></tr></thead>
             <tbody id="t-live"></tbody></table>
           </div>
+          <div class="scroll" id="v-alertes" hidden><div class="histo" id="h-list"></div></div>
           <div class="scroll" id="v-watch" hidden><div class="wgrid" id="g-watch"></div></div>
           <div class="scroll" id="v-tweets" hidden>
             <div class="avert">⚠ Un tweet est un <b>signal d'attention</b>, pas une preuve. Le ton (positif / négatif) vient de <b>mots-clés</b>
@@ -928,7 +1028,10 @@ td.whytd { text-align: left; }
 </div>
 <div class="apanel" id="apanel">
   <div class="ah"><b>Alertes</b><button class="btn" id="a-toggle">Activer</button><button class="btn" id="a-test" title="Tester le bip et la notification">Tester</button></div>
-  <div class="opts">
+  <div class="poches">
+    <section class="poche" data-poche="types">
+      <button class="poche-h" aria-expanded="true"><span class="chev">▸</span>Types d'alertes<span class="poche-n" id="pn-types"></span></button>
+      <div class="poche-c"><div class="opts">
     <button class="chip" data-at="chute" aria-pressed="true" title="Chute du jour ≤ −15 %"><span class="ck"></span>Chutes ≤ −15 %</button>
     <button class="chip" data-at="rebond" aria-pressed="true" title="Chute ≥ 10 % hier puis hausse ≥ 10 % aujourd'hui"><span class="ck"></span>Rebonds</button>
     <button class="chip" data-at="watchlist" aria-pressed="true" title="Titre de ta watchlist ≤ −10 %"><span class="ck"></span>Watchlist ≤ −10 %</button>
@@ -938,12 +1041,22 @@ td.whytd { text-align: left; }
     <button class="chip" data-at="plancher" aria-pressed="true" title="Un titre en range revient toucher son plancher (zone d'achat)"><span class="ck"></span>Range au plancher</button>
     <button class="chip" data-at="tweet" aria-pressed="true" title="Nouveau tweet d'un compte de comptes_x.json → notifier"><span class="ck"></span>Tweets suivis</button>
     <button class="chip" data-at="downup" aria-pressed="true" title="Un titre DOWN/UP (type Anoto) vient de faire une grosse chute pas encore rachetée"><span class="ck"></span>DOWN/UP en phase DOWN</button>
+      </div></div>
+    </section>
+    <section class="poche" data-poche="regles">
+      <button class="poche-h" aria-expanded="true"><span class="chev">▸</span>Mes alertes<span class="poche-n" id="pn-regles"></span><span class="poche-i" id="a-rg-info"></span></button>
+      <div class="poche-c">
+        <div style="padding:2px 14px 6px"><button class="chip" id="a-etendu" aria-pressed="false" title="Surveille aussi le matin et le soir (7h30 – 23h, heures LSX). Attention : le soir les spreads s'élargissent et peuvent déclencher de fausses alertes."><span class="ck"></span>Surveiller jusqu'à 23h (LSX)</button></div>
+        <div class="rgs" id="a-rgs"></div>
+      </div>
+    </section>
+    <section class="poche grande" data-poche="liste">
+      <button class="poche-h" aria-expanded="true"><span class="chev">▸</span>Dernières alertes<span class="poche-n" id="pn-liste"></span></button>
+      <div class="poche-c"><div class="lst" id="a-list"></div></div>
+    </section>
   </div>
-  <div class="sub-h">Mes alertes <span id="a-rg-info"></span></div>
-  <div style="padding:2px 14px 6px"><button class="chip" id="a-etendu" aria-pressed="false" title="Surveille aussi le matin et le soir (7h30 – 23h, heures LSX). Attention : le soir les spreads s'élargissent et peuvent déclencher de fausses alertes."><span class="ck"></span>Surveiller jusqu'à 23h (LSX)</button></div>
-  <div class="rgs" id="a-rgs"></div>
-  <div class="sub-h">Historique</div>
-  <div class="lst" id="a-list"></div>
+  <div class="a-pied"><button class="tout" id="a-tout">Voir tout l'historique →</button>
+    <button class="btn" id="a-plier" title="Tout replier / tout déplier" style="height:26px">⇕</button></div>
 </div>
 <div class="tooltip" id="tip"></div>
 <div class="toasts" id="toasts"></div>
@@ -1007,7 +1120,7 @@ $("#theme").onclick = basculerTheme;
 
 // ================================================================= état
 // Ordre des vues = ordre de la barre latérale = touches 1 à 9
-const ORDRE = ["reco", "picks", "moves", "rebonds", "downup", "ranges", "simu", "live", "watch", "tweets"];
+const ORDRE = ["reco", "picks", "moves", "rebonds", "downup", "ranges", "simu", "live", "watch", "tweets", "alertes"];
 let RECOS = [], TWEETS = [];
 let PICKS = [], LIVE = [], WLIST = [], MOVES = [], REBONDS = [], DOWNUP = [], SIMU = [], RANGES_V = [], WATCH = new Set();
 let vue = "picks", tri = { k: "score", dir: -1 }, selIsin = null, lignesVisibles = [];
@@ -1023,6 +1136,7 @@ const VUES = {
   live: ["Live", "Ce qui bouge en ce moment sur tout l'univers Trade Republic"],
   watch: ["Watchlist", "Tes titres suivis, en temps réel"],
   tweets: ["News Twitter · signaux", "Les actions Trade Republic citées sur X par les comptes suivis"],
+  alertes: ["Historique des alertes", "Toutes les alertes reçues, par jour · clique pour ouvrir le titre ou le tweet"],
 };
 function allerVue(v) {
   vue = v;
@@ -1037,12 +1151,13 @@ function allerVue(v) {
   if (v === "ranges") chargerRanges();
   if (v === "reco") chargerReco();
   if (v === "tweets") chargerTweets();
+  if (v === "alertes") chargerHisto();
   majLignesVisibles();
 }
 $$(".nav[data-view]").forEach(b => b.onclick = () => allerVue(b.dataset.view));
 
 function majLignesVisibles() {
-  const src = { reco: () => RECOS, picks: () => filtrer(), moves: () => movesFiltres(), rebonds: () => REBONDS, downup: () => DOWNUP, simu: () => SIMU, ranges: () => RANGES_V, live: () => LIVE, watch: () => WLIST, tweets: () => tweetsFiltres() }[vue];
+  const src = { reco: () => RECOS, picks: () => filtrer(), moves: () => movesFiltres(), rebonds: () => REBONDS, downup: () => DOWNUP, simu: () => SIMU, ranges: () => RANGES_V, live: () => LIVE, watch: () => WLIST, tweets: () => tweetsFiltres(), alertes: () => histoFiltre().filter(a => a.isin) }[vue];
   lignesVisibles = src().map(l => l.isin);
 }
 
@@ -1332,14 +1447,101 @@ function rendreAlertes() {
   $("#a-toggle").textContent = PREF.on ? "Désactiver" : "Activer";
   $("#a-toggle").className = "btn" + (PREF.on ? "" : " primary");
   $$("#apanel [data-at]").forEach(c => c.setAttribute("aria-pressed", !!PREF.types[c.dataset.at]));
-  const liste = ALERTES.filter(a => PREF.types[a.type]);
-  $("#a-list").innerHTML = liste.length ? liste.map(a => `<div class="al ${a.id > lu ? "new" : ""}" data-alert="${a.isin}"${a.lien ? ` data-lien="${esc(a.lien)}"` : ""}>
-      <div class="ic ${a.type}">${a.type === "tweet" ? "𝕏" : a.type === "decroche" ? "⤓" : a.type === "realigne" ? "⤒" : a.type === "plancher" ? "⌊" : a.type === "downup" ? "⇅" : a.type === "regle" ? "🔔" : a.type === "rebond" ? "↗" : a.type === "watchlist" ? "★" : "↘"}</div>
-      <div><div class="t1"><b>${esc(a.nom)}</b>${a.var_1j == null || ["plancher", "decroche", "realigne"].includes(a.type) ? "" : `<span class="num ${a.var_1j >= 0 ? "up" : "down"}">${a.type === "rebond" ? pct(a.var_veille, true) + " → " : ""}${pct(a.var_1j, true)}</span>`}</div>
-        <div class="t2" dir="auto">${a.categorie ? catTag(a) + " " : ""}${esc(a.cause || "")}</div>${a.image ? `<img class="timg" src="${esc(a.image)}" alt="image du tweet" loading="lazy" referrerpolicy="no-referrer">` : ""}
-        <div class="t3">${new Date(a.heure).toLocaleString("fr-FR", { weekday: "short", hour: "2-digit", minute: "2-digit" })}</div></div></div>`).join("")
+  const liste = ALERTES.filter(a => PREF.types[a.type]).slice(0, 30);
+  const nTypes = $$("#apanel [data-at]").length, nActifs = [...$$("#apanel [data-at]")].filter(c => PREF.types[c.dataset.at]).length;
+  $("#pn-types").textContent = `${nActifs}/${nTypes}`;
+  $("#pn-liste").textContent = nonLus ? `${nonLus} nouvelle${nonLus > 1 ? "s" : ""}` : "";
+  $("#a-list").innerHTML = liste.length ? liste.map(a => ligneAlerte(a, lu)).join("")
     : `<div class="empty" style="padding:30px"><b>Aucune alerte</b>Elles arrivent après chaque passage du screener (toutes les 15 min en séance).</div>`;
 }
+const IC_ALERTE = { tweet: "𝕏", decroche: "⤓", realigne: "⤒", plancher: "⌊", downup: "⇅", regle: "🔔", rebond: "↗", watchlist: "★", chute: "↘" };
+const LIB_ALERTE = { chute: "Chutes ≤ −15 %", rebond: "Rebonds", watchlist: "Watchlist", regle: "Mes alertes", decroche: "Décrochage LSX",
+  realigne: "Réalignement", plancher: "Range au plancher", tweet: "Tweets", downup: "DOWN/UP" };
+function ligneAlerte(a, lu = Infinity, histo = false) {
+  const h = new Date(a.heure);
+  return `<div class="al ${a.id > lu ? "new" : ""}" data-alert="${a.isin}"${a.lien ? ` data-lien="${esc(a.lien)}"` : ""}>
+      <div class="ic ${a.type}">${IC_ALERTE[a.type] || "↘"}</div>
+      <div><div class="t1"><b>${esc(a.nom)}</b>${a.var_1j == null || ["plancher", "decroche", "realigne"].includes(a.type) ? "" : `<span class="num ${a.var_1j >= 0 ? "up" : "down"}">${a.type === "rebond" ? pct(a.var_veille, true) + " → " : ""}${pct(a.var_1j, true)}</span>`}</div>
+        <div class="t2" dir="auto">${a.categorie ? catTag(a) + " " : ""}${esc(a.cause || "")}</div>${a.image ? `<img class="timg" src="${esc(a.image)}" alt="image du tweet" loading="lazy" referrerpolicy="no-referrer">` : ""}
+        ${histo ? `<div class="t3">${esc(LIB_ALERTE[a.type] || a.type)}${a.lien ? " · ouvre le tweet" : a.isin ? " · ouvre la fiche" : ""}</div>`
+                : `<div class="t3">${h.toLocaleString("fr-FR", { weekday: "short", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</div>`}</div>
+      ${histo ? `<div class="hh">${h.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}</div>` : ""}</div>`;
+}
+
+// ------------------------------------------------ page Historique des alertes
+const HISTO = { tout: [], per: 0, q: "", types: null, total: 0 };
+function histoFiltre() {
+  const depuis = HISTO.per ? Date.now() - HISTO.per * 86400000 : 0, q = HISTO.q.toLowerCase();
+  return HISTO.tout.filter(a => (!HISTO.types || HISTO.types.has(a.type)) && new Date(a.heure) >= depuis
+    && (!q || `${a.nom} ${a.cause || ""} ${a.isin}`.toLowerCase().includes(q)));
+}
+async function chargerHisto() {
+  const r = await api("/api/alertes?depuis=0&limite=3000").catch(() => null);
+  if (!r) { $("#h-list").innerHTML = `<div class="fl bad">Erreur de connexion au serveur</div>`; return; }
+  HISTO.tout = r.alertes; HISTO.total = r.total;
+  rendreHisto();
+}
+function rendreHisto() {
+  const L = histoFiltre(), n = {};
+  HISTO.tout.forEach(a => n[a.type] = (n[a.type] || 0) + 1);
+  $("#h-types").innerHTML = Object.keys(LIB_ALERTE).filter(t => n[t]).map(t =>
+    `<button class="chip" data-ht="${t}" aria-pressed="${!HISTO.types || HISTO.types.has(t)}"><span class="ck"></span>${IC_ALERTE[t]} ${LIB_ALERTE[t]}<span class="n">${n[t]}</span></button>`).join("");
+  $("#h-info").innerHTML = `<b>${L.length}</b> alerte(s) affichée(s) sur ${HISTO.total}`;
+  const jours = {};
+  L.forEach(a => (jours[a.heure.slice(0, 10)] ||= []).push(a));
+  const auj = new Date().toISOString().slice(0, 10), hier = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  const nomJour = j => j === auj ? "Aujourd'hui" : j === hier ? "Hier" : new Date(j).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
+  HISTO.plis ||= {};
+  $("#h-list").innerHTML = L.length ? Object.entries(jours).map(([j, as]) =>
+    `<div class="jour ${HISTO.plis[j] ? "ferme" : ""}" data-jour="${j}" role="button" aria-expanded="${!HISTO.plis[j]}"><span class="chev">▸</span>${nomJour(j)}<span>${as.length} alerte(s)</span></div>
+     <div class="jcont">${as.map(a => ligneAlerte(a, Infinity, true)).join("")}</div>`).join("")
+    : `<div class="empty"><b>Aucune alerte</b>${HISTO.tout.length ? "Aucune alerte ne correspond aux filtres." : "Elles arrivent après chaque passage du screener."}</div>`;
+  if (vue === "alertes") majLignesVisibles();
+}
+$("#h-types").onclick = e => { const c = e.target.closest("[data-ht]"); if (!c) return;
+  const tous = Object.keys(LIB_ALERTE); HISTO.types ||= new Set(tous);
+  HISTO.types.has(c.dataset.ht) ? HISTO.types.delete(c.dataset.ht) : HISTO.types.add(c.dataset.ht);
+  if (HISTO.types.size === tous.length) HISTO.types = null;
+  rendreHisto(); };
+$("#h-per").onclick = e => { const b = e.target.closest("button"); if (!b) return;
+  $$("#h-per button").forEach(x => x.classList.toggle("on", x === b)); HISTO.per = +b.dataset.p; rendreHisto(); };
+$("#h-q").oninput = e => { HISTO.q = e.target.value.trim(); rendreHisto(); };
+$("#h-plier").onclick = () => {
+  const js = [...$$("#h-list [data-jour]")].map(x => x.dataset.jour); HISTO.plis ||= {};
+  const ouvrir = js.every(j => HISTO.plis[j]); js.forEach(j => HISTO.plis[j] = !ouvrir); rendreHisto(); };
+$("#h-list").onclick = e => {
+  const j = e.target.closest("[data-jour]");
+  if (j) { HISTO.plis[j.dataset.jour] = !HISTO.plis[j.dataset.jour]; j.classList.toggle("ferme"); j.setAttribute("aria-expanded", !HISTO.plis[j.dataset.jour]); return; }
+  const a = e.target.closest("[data-alert]"); if (!a) return;
+  if (a.dataset.lien) window.open(a.dataset.lien, "_blank", "noopener"); else if (a.dataset.alert) selectionner(a.dataset.alert); };
+$("#a-tout").onclick = () => { $("#apanel").classList.remove("open"); allerVue("alertes"); };
+
+// ------------------------------------------------ pochettes du panneau d'alertes
+PREF.plis ??= {};  // poche -> true si repliee (memorise dans localStorage avec les autres preferences)
+function appliquerPlis() {
+  $$("#apanel .poche").forEach(p => {
+    const ferme = !!PREF.plis[p.dataset.poche];
+    p.classList.toggle("ferme", ferme);
+    p.querySelector(".poche-h").setAttribute("aria-expanded", !ferme);
+  });
+}
+$$("#apanel .poche-h").forEach(h => h.onclick = e => {
+  if (e.target.closest("button:not(.poche-h), .chip")) return;
+  const p = h.closest(".poche"); PREF.plis[p.dataset.poche] = !PREF.plis[p.dataset.poche]; sauverPref(); appliquerPlis();
+});
+$("#a-plier").onclick = () => {
+  const tous = [...$$("#apanel .poche")].map(p => p.dataset.poche), ouvrir = tous.every(t => PREF.plis[t]);
+  tous.forEach(t => PREF.plis[t] = !ouvrir); sauverPref(); appliquerPlis();
+};
+appliquerPlis();
+// taille du panneau : resize CSS par le coin, memorisee
+if (PREF.taille) { $("#apanel").style.width = PREF.taille.w + "px"; $("#apanel").style.height = PREF.taille.h + "px"; $("#apanel").classList.add("taille"); }
+new ResizeObserver(() => {
+  const a = $("#apanel"); if (!a.classList.contains("open")) return;
+  const w = Math.round(a.offsetWidth), h = Math.round(a.offsetHeight);
+  if (PREF.taille?.w === w && PREF.taille?.h === h) return;
+  if (a.style.width || a.style.height) { PREF.taille = { w, h }; sauverPref(); a.classList.add("taille"); }
+}).observe($("#apanel"));
 
 async function verifierAlertes() {
   const r = await api("/api/alertes?depuis=0").catch(() => null);
@@ -1389,7 +1591,65 @@ function jauge(v) {
   return `<div class="jauge" title="Score de potentiel ${v}/100"><svg width="46" height="46"><circle cx="23" cy="23" r="19" fill="none" stroke="var(--line)" stroke-width="4"/>
     <circle cx="23" cy="23" r="19" fill="none" stroke="${col}" stroke-width="4" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${c * (1 - v / 100)}"/></svg><b>${v}</b></div>`;
 }
+// ------------------------------------------------ oscillateurs type Erda / Anoto
+const OSC = { mode: "osc", marches: new Set(["canada", "euronext", "nordiques"]), lignes: [] };
+function sparkOsc(l) {
+  const J = l.jours, W = 300, H = 86, P = 4;
+  const lo = Math.min(...J.map(j => j[1]), l.support), hi = Math.max(...J.map(j => j[2]), l.resistance);
+  const x = i => P + i * (W - 2 * P) / Math.max(1, J.length - 1), y = v => H - P - (v - lo) / (hi - lo || 1) * (H - 2 * P);
+  const idx = Object.fromEntries(J.map((j, i) => [j[0], i]));
+  return `<svg class="osc-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Cours du mois avec support et résistance">
+    ${J.map((j, i) => `<line class="hl" x1="${x(i)}" x2="${x(i)}" y1="${y(j[1])}" y2="${y(j[2])}"/>`).join("")}
+    <line class="sup" x1="0" x2="${W}" y1="${y(l.support)}" y2="${y(l.support)}" stroke-dasharray="4 4"/>
+    <line class="res" x1="0" x2="${W}" y1="${y(l.resistance)}" y2="${y(l.resistance)}" stroke-dasharray="4 4"/>
+    <polyline class="c" points="${J.map((j, i) => `${x(i)},${y(j[3])}`).join(" ")}"/>
+    ${l.allers.map(a => idx[a.date_creux] == null ? "" : `<circle class="pt" cx="${x(idx[a.date_creux])}" cy="${y(a.creux)}" r="3"><title>Creux ${a.date_creux} : ${a.creux} → ${a.sommet} (+${a.hausse} %)</title></circle>`).join("")}
+  </svg>`;
+}
+async function chargerOsc() {
+  const q = `prix_max=${+$("#osc-pmax").value || 0.1}&rebond_min=${+$("#osc-reb").value || 30}`;
+  const r = await api("/api/oscillateurs?" + q).catch(() => null);
+  if (!r) return;
+  OSC.lignes = r.lignes;
+  const L = r.lignes.filter(l => OSC.marches.has(l.marche));
+  RECOS = L;
+  const REG = { reguliere: "Régulier", approximative: "Approximatif" };
+  $("#r2-info").innerHTML = `<b>${L.length}</b> titre(s) sur ${r.lignes.length} tous marchés · prix ${r.criteres.prix_min}–${r.criteres.prix_max} € · allers ≥ +${r.criteres.rebond_min} % · spread ≤ ${r.criteres.spread_max} % · gain/cycle ≥ ${r.criteres.net_min} % · séances du ${ago(r.heure)}`;
+  $("#g-osc").innerHTML = L.length ? L.map((l, i) => `<div class="rc ${l.isin === selIsin ? "sel" : ""}" data-isin="${l.isin}">
+      <div class="h">${avatar(l.nom, l.isin)}<div style="min-width:0;flex:1"><div style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${i + 1}. ${esc(l.nom)}</div>
+        <div class="faint mono" style="font-size:11px">${l.isin} · ${esc(l.bourse)}</div></div>
+        <span class="cat ${l.regularite === "reguliere" ? "positif" : "neutre"}" title="Plus haut creux / plus bas creux : ×${l.ratio_creux} · sommets : ×${l.ratio_sommets}">${REG[l.regularite]}</span>${etoile(l.isin)}</div>
+      ${sparkOsc(l)}
+      <div class="osc-kv">
+        <div>Allers<b>${l.n} × +${l.hausse_med} %</b></div>
+        <div>Gain / cycle<b class="${l.net_cycle > 0 ? "up" : "down"}">+${l.net_cycle} %</b></div>
+        <div>Cycle<b>${l.periode != null ? `~${l.periode} séances` : "—"}</b></div>
+        <div>Spread<b>${l.spread_pct} %</b></div>
+      </div>
+      <div class="osc-pos" title="Position actuelle entre le support (gauche) et la résistance (droite)"><i style="left:${l.position_pct ?? 50}%"></i></div>
+      <div class="osc-sub"><span class="up">support ${px(l.support)}</span><span>bid ${px(l.bid)} · ask ${px(l.ask)}</span><span class="down">résistance ${px(l.resistance)}</span></div>
+      <div class="foot">${l.bid > l.resistance * 1.05 ? '<span class="flag trou">sorti du range par le haut</span>' : l.position_pct != null && l.position_pct <= 25 ? '<span class="flag motif">zone d\'achat</span>' : l.position_pct >= 80 ? '<span class="flag meca">près de la résistance</span>' : ""}
+        <span>dernier creux ${new Date(l.dernier_creux).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" })}</span>
+        <span>${l.dispo_ask.toLocaleString("fr-FR")} € dispo à l'ask</span>${l.hors_fuseau ? '<span class="flag asie">asie</span>' : ""}</div>
+    </div>`).join("")
+    : `<div class="empty" style="grid-column:1/-1"><b>Aucun oscillateur</b>Aucun titre ne remplit les critères sur ces marchés. Élargis les marchés, le prix ou baisse le rebond minimum.</div>`;
+  if (vue === "reco") majLignesVisibles();
+}
+function modeReco(m) {
+  OSC.mode = m;
+  $$("#r2-mode button").forEach(b => b.classList.toggle("on", b.dataset.m === m));
+  $("#osc-zone").hidden = m !== "osc"; $("#r2-osc-f").hidden = m !== "osc";
+  $("#reco-avert").hidden = m === "osc"; $("#g-reco").hidden = m === "osc"; $("#r2-bons").hidden = m === "osc";
+  chargerReco();
+}
+$("#r2-mode").onclick = e => { const b = e.target.closest("button"); if (b) modeReco(b.dataset.m); };
+$$("#r2-osc-f [data-mk]").forEach(c => c.onclick = () => {
+  OSC.marches.has(c.dataset.mk) ? OSC.marches.delete(c.dataset.mk) : OSC.marches.add(c.dataset.mk);
+  c.setAttribute("aria-pressed", OSC.marches.has(c.dataset.mk)); chargerOsc(); });
+$("#osc-pmax").onchange = $("#osc-reb").onchange = () => chargerOsc();
+
 async function chargerReco() {
+  if (OSC.mode === "osc") return chargerOsc();
   const r = await api("/api/recommandations").catch(() => null);
   if (!r) return;
   RECOS = r.lignes.filter(c => !R2.bons || c.niveau !== "a_surveiller");
@@ -1735,6 +1995,7 @@ async function chargerRegles() {
   const plage = r.etendu ? "7h30 – 23h" : "9h – 17h30";
   $("#a-etendu").setAttribute("aria-pressed", !!r.etendu);
   $("#a-rg-info").textContent = r.actif ? `surveillance active · ${r.heure ? ago(r.heure) : "…"}` : `en pause (${plage})`;
+  $("#pn-regles").textContent = REGLES.length || "";
   $("#a-rgs").innerHTML = REGLES.length ? REGLES.map(x => ligneRegle(x, true)).join("")
     : `<div class="faint" style="font-size:12px;padding:6px 0">Aucune. Ouvre la fiche d'un titre → « Mes alertes sur ce titre ».</div>`;
   if (fiche) rendreReglesFiche();
@@ -1831,9 +2092,12 @@ function rendreTweets() {
   const imgs = t => !(t.images || []).length ? "" : `<div class="imgs ${t.images.length === 1 ? "seul" : ""}">${t.images.map(i =>
       `<a href="${esc(i.url)}" target="_blank" rel="noopener noreferrer"><img src="${esc(i.mini)}" alt="image du tweet" loading="lazy" referrerpolicy="no-referrer">${i.video ? '<span class="vid">▶</span>' : ""}</a>`).join("")}</div>`;
   const unTweet = (t, max = 240) => `<div class="tw ${t.ia?.pertinent ? "hit" : ""}" dir="auto">
-        <div class="tt">${esc(t.texte.length > max ? t.texte.slice(0, max) + "…" : t.texte)}</div>${imgs(t)}
+        <div class="tt">${esc(t.texte.length > max ? t.texte.slice(0, max) + "…" : t.texte)}</div>${imgs(t)}${
+          (t.apercus || []).map(a => `<a class="ap ${a.image ? "" : "noimg"}" href="${esc(a.url)}" target="_blank" rel="noopener noreferrer" title="Lire l'article">
+            <div><small>${esc(a.site || "")}</small><b>${esc(a.titre)}</b>${a.resume ? `<span>${esc(a.resume)}</span>` : ""}</div>
+            ${a.image ? `<img src="${esc(a.image)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : ""}</a>`).join("")}
         <div class="ts"><a class="lk" href="${esc(t.lien)}" target="_blank" rel="noopener noreferrer">↗ @${esc(t.compte)} sur X</a>${
-          (t.liens || []).map(u => `<a class="lk" href="${esc(u)}" target="_blank" rel="noopener noreferrer" title="${esc(u)}">↗ ${esc(dom(u))}</a>`).join("")}
+          (t.liens || []).filter(u => !(t.apercus || []).length).map(u => `<a class="lk" href="${esc(u)}" target="_blank" rel="noopener noreferrer" title="${esc(u)}">↗ ${esc(dom(u))}</a>`).join("")}
           <span>${d(t.date)}</span><span>♥ ${t.likes} · ↻ ${t.reposts}</span>${t.mots.length ? `<span class="${t.ton === "positif" ? "up" : t.ton === "negatif" ? "down" : ""}">« ${esc(t.mots.join(", "))} »</span>` : ""}${
           (t.tags || []).length ? `<span class="tags">${t.tags.map(x => `<span>${esc(x)}</span>`).join("")}</span>` : ""}</div>
         ${ia(t)}</div>`;
@@ -2132,6 +2396,28 @@ async function lancerIA(isin, force = false) {
   if (!r) { $("#ia").innerHTML = `<div class="fl bad">Erreur de connexion au serveur</div>`; return; }
   IA[isin] = r; rendreIA(r);
 }
+// "Ce prix dans l'histoire" : faits calcules sur tout l'historique du marche d'origine (Yahoo)
+function histoLong(h) {
+  if (!h) return `<div class="sec-h" style="margin:14px 0 0"><h3>Ce prix dans l'histoire</h3><span class="faint" style="margin-left:auto;font-size:11.5px">historique long indisponible</span></div>`;
+  const dd = s => new Date(s).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" });
+  const v = x => `${x.toLocaleString("fr-FR", { maximumSignificantDigits: 4 })} ${h.devise || ""}`;
+  const [cls, sit] = h.nouveau_plus_bas ? ["bas", "▼ Nouveau plus bas historique : jamais coté aussi bas"]
+    : h.nouveau_plus_haut ? ["haut", "▲ Nouveau plus haut historique : jamais coté aussi haut"]
+    : h.deja_vu ? ["", `Déjà coté à ce niveau (${h.jours_a_ce_prix} séances) · dernière fois le ${dd(h.derniere_fois)}${
+        h.derniere_fois_avant_mois ? ` · avant ce mois : ${dd(h.derniere_fois_avant_mois)}` : " · première fois avant ce mois"}`]
+    : ["haut", "Jamais coté à ce niveau auparavant"];
+  return `<div class="sec-h" style="margin:14px 0 0"><h3>Ce prix dans l'histoire</h3>
+      <span class="faint" style="margin-left:auto;font-size:11.5px">${esc(h.symbole)} depuis ${new Date(h.depuis).getFullYear()} · prix ajustés</span></div>
+    <div class="hl-sit ${cls}">${esc(sit)}</div>
+    <div class="hl-box">
+      <div>Prix actuel<b>${v(h.prix)}</b></div>
+      <div>Plus bas historique<b>${v(h.plus_bas)}</b>${dd(h.date_plus_bas)}</div>
+      <div>Plus haut historique<b>${v(h.plus_haut)}</b>${dd(h.date_plus_haut)} · ${pct(h.vs_plus_haut_pct, true)}</div>
+      <div title="Part des clôtures passées sous le prix actuel">Sous ce prix · 1 an<b>${h.sous_ce_prix_1a ?? "—"} %</b></div>
+      <div>Sous ce prix · 5 ans<b>${h.sous_ce_prix_5a ?? "—"} %</b></div>
+      <div>Sous ce prix · tout<b>${h.sous_ce_prix_tout ?? "—"} %</b></div>
+    </div>`;
+}
 function rendreIA(r) {
   const m = r.motif, d = s => new Date(s).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" });
   const occ = m.occurrences.map(o => `<span class="${o.reussi ? "ok" : ""}" title="${o.rebond == null ? "Lendemain pas encore joué" : o.reussi ? "Rebond réussi" : "Pas de rebond suffisant"}">
@@ -2141,6 +2427,7 @@ function rendreIA(r) {
     <div class="sec-h" style="margin:14px 0 0"><h3>Motif chute → rebond</h3>
       <span class="faint" style="margin-left:auto;font-size:11.5px">${m.chutes ? `${m.rebonds}/${m.chutes} rebonds · ${m.taux} %` : "aucune chute ≥ 15 % ce mois-ci"}</span></div>
     ${occ ? `<div class="occ">${occ}</div>` : ""}
+    ${histoLong(r.historique)}
     <div class="sec-h" style="margin:14px 0 4px"><h3>News · 30 jours</h3><span class="faint" style="margin-left:auto;font-size:11.5px">recherche « ${esc(r.recherche)} »</span></div>
     <div class="news">${r.news.length ? r.news.map(n => `<a href="${esc(n.lien)}" target="_blank" rel="noopener noreferrer">
         <span class="nd">${d(n.date)}</span><span><div class="nt">${esc(n.titre)}</div><div class="ns">${esc(n.source)}</div></span></a>`).join("")

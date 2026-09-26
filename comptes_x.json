@@ -10,10 +10,12 @@
     "FR001400OLP5": "biophytis"
   },
   "crypto": [
-    "shabancrypto"
+    "shabancrypto",
+    "trader1sz"
   ],
   "traders": [],
   "notifier": [
-    "shabancrypto"
+    "shabancrypto",
+    "trader1sz"
   ]
 }

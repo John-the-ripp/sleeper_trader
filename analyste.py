@@ -22,6 +22,7 @@ from dotenv import load_dotenv
 
 import motifs
 import news
+import origine
 import picks
 import tweets
 from tr_data import BASE, historiques, tickers
@@ -43,6 +44,7 @@ Format (titres en gras, puces courtes) :
 **En bref** — 1 à 2 phrases.
 **Ce qui explique les mouvements** — puces « date : mouvement → news (source) ».
 **Motif chute → rebond** — le motif est-il crédible ? combien d'occurrences ? échantillon suffisant ?
+**Ce prix dans l'histoire** — le titre a-t-il déjà coté à ce niveau ou est-ce une première (nouveau plus bas / plus haut historique) ? quand pour la dernière fois ? où se situe-t-il par rapport à son plus haut et à son année ? Utilise uniquement le bloc « Historique complet » (calculé, pas à recalculer) ; s'il est absent, dis que l'historique long n'est pas disponible.
 **Points de vigilance** — spread, liquidité, fiabilité des cotations, taille de l'échantillon."""
 
 
@@ -62,7 +64,7 @@ def _llm(messages: list[dict], max_tokens: int = 900) -> str:
 
 
 def _contexte(nom: str, isin: str, t: dict, jours: list[dict], m: dict, flags: list[str], articles: list[dict],
-              posts: list[dict]) -> str:
+              posts: list[dict], hl: dict | None = None) -> str:
     bid, ask = picks._prix(t, "bid"), picks._prix(t, "ask")
     lignes = [f"Titre : {nom} (ISIN {isin})", f"Aujourd'hui : {datetime.now(picks.PARIS):%A %d/%m/%Y %H:%M}"]
     if bid and ask:
@@ -83,6 +85,28 @@ def _contexte(nom: str, isin: str, t: dict, jours: list[dict], m: dict, flags: l
         suite = "lendemain pas encore connu" if o["rebond"] is None else f"lendemain {o['rebond']:+.1f} %"
         lignes.append(f"- {o['date']} : {o['chute']:+.1f} % → {suite}")
 
+    if hl:
+        d = hl["devise"] or ""
+        if hl["nouveau_plus_bas"]:
+            situation = "NOUVEAU PLUS BAS HISTORIQUE (jamais coté aussi bas)"
+        elif hl["nouveau_plus_haut"]:
+            situation = "NOUVEAU PLUS HAUT HISTORIQUE (jamais coté aussi haut)"
+        elif hl["deja_vu"]:
+            situation = (f"déjà coté à ce niveau ({hl['jours_a_ce_prix']} séances), dernière fois le {hl['derniere_fois']}"
+                         + (f", et avant le mois en cours le {hl['derniere_fois_avant_mois']}" if hl["derniere_fois_avant_mois"]
+                            else " ; jamais à ce niveau avant le mois en cours"))
+        else:
+            situation = "jamais coté à ce niveau (à ±3 %) auparavant"
+        lignes.append(f"\nHistorique complet du marché d'origine ({hl['symbole']}, en {d}, prix ajustés des regroupements, "
+                      f"depuis le {hl['depuis']}, calculé) :")
+        lignes.append(f"- prix actuel {hl['prix']} {d} : {situation}")
+        lignes.append(f"- plus bas historique {hl['plus_bas']} {d} le {hl['date_plus_bas']} ; plus haut {hl['plus_haut']} {d} "
+                      f"le {hl['date_plus_haut']} ({hl['vs_plus_haut_pct']:+.1f} % depuis ce plus haut)")
+        lignes.append(f"- part des clôtures passées SOUS le prix actuel : {hl['sous_ce_prix_1a']} % sur 1 an, {hl['sous_ce_prix_5a']} % "
+                      f"sur 5 ans, {hl['sous_ce_prix_tout']} % depuis le début (0 % = jamais aussi bas)")
+    else:
+        lignes.append("\nHistorique complet : indisponible (pas de symbole Yahoo pour ce titre).")
+
     lignes.append(f"\nNews des 30 derniers jours ({len(articles)}) :")
     for a in articles:
         lignes.append(f"- {a['date'][:10]} | {a['source']} | {a['titre']}")
@@ -102,11 +126,12 @@ async def analyser(isin: str, nom: str, force: bool = False) -> dict:
         return {**CACHE[isin][1], "cache": True}
 
     # TR (async), Google News et X (bloquants -> threads) en parallele
-    hist, live, articles, posts = await asyncio.gather(
+    hist, live, articles, posts, hl = await asyncio.gather(
         historiques([isin], range="1m", timeout=10),
         tickers([isin], timeout=8),
         asyncio.to_thread(news.chercher, nom),
         asyncio.to_thread(tweets.chercher, nom, isin),
+        asyncio.to_thread(origine.historique_long, isin),
     )
     jours = picks.jours_depuis_bougies((hist.get(isin) or {}).get("aggregates", []))
     m = motifs.chute_rebond(jours)
@@ -126,7 +151,7 @@ async def analyser(isin: str, nom: str, force: bool = False) -> dict:
     try:
         resume = await asyncio.to_thread(_llm, [
             {"role": "system", "content": SYSTEME},
-            {"role": "user", "content": _contexte(nom, isin, t, jours, m, flags, articles, posts)},
+            {"role": "user", "content": _contexte(nom, isin, t, jours, m, flags, articles, posts, hl)},
         ])
     except Exception as exc:  # le reste (news + motif) reste utile sans le LLM
         erreur = f"{type(exc).__name__}: {exc}"[:300]
@@ -134,7 +159,7 @@ async def analyser(isin: str, nom: str, force: bool = False) -> dict:
     resultat = {
         "isin": isin, "heure": datetime.now(picks.PARIS).isoformat(timespec="seconds"),
         "modele": os.environ.get("MODEL_NAME"), "recherche": news.nom_de_recherche(nom),
-        "resume": resume, "erreur": erreur, "motif": m, "news": articles, "tweets": posts,
+        "resume": resume, "erreur": erreur, "motif": m, "news": articles, "tweets": posts, "historique": hl,
     }
     if resume:
         CACHE[isin] = (time.time(), resultat)

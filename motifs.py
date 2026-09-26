@@ -13,6 +13,8 @@ cloture raterait un rebond du matin qui retombe l'apres-midi.
 
 from __future__ import annotations
 
+import statistics
+
 CHUTE = 15.0     # % de baisse cloture/cloture pour parler de "forte chute"
 REBOND = 10.0    # % de hausse le lendemain (sur le haut de seance) pour parler de rebond
 MIN_CHUTES = 2   # en dessous, pas de motif : une seule occurrence n'est pas une habitude
@@ -148,6 +150,80 @@ def plancher(jours: list[dict], courant: float | None = None) -> dict | None:
         # le prix actuel est passe sous le plancher : le range n'existe plus (E.P.H. : -91 %)
         "casse": prix < niveau * (1 - PL_CASSE / 100),
         "detail": meilleur["rebonds"],
+    }
+
+
+# ------------------------------------------------ oscillateur support <-> resistance
+# Demande du 26/09 : "des trucs comme Erda et Anoto qui font ca en regulier". Mesure sur
+# les seances LSX (09/2026) :
+#   Erda  : creux 0,056 (08/09) -> 0,073 (11/09) +30 % ; creux 0,046 (23/09) -> 0,063 +37 %
+#   Anoto : 0,008 -> 0,014 +75 % ; 0,0074 -> 0,015 +103 % ; 0,011 -> 0,0151 +37 % ; 0,0103 -> 0,0162 +57 %
+# Methode "zigzag" : un creux est confirme quand le prix remonte d'au moins OS_HAUSSE % au-dessus,
+# un sommet quand il retombe d'au moins OS_BAISSE % en dessous. Ensuite on verifie que les creux
+# retombent toujours au meme niveau (support) et les sommets au meme plafond (resistance).
+OS_HAUSSE = 25.0     # creux -> sommet minimal pour compter un aller (on filtre ensuite a 30 %)
+OS_BAISSE = 15.0     # sommet -> creux minimal pour compter un retour
+OS_SERRE = 1.35      # plus haut creux / plus bas creux <= 1,35 : support "regulier"
+OS_LACHE = 1.6       # <= 1,6 : support "approximatif" (Anoto : 0,0074 -> 0,011 = 1,49)
+
+
+def oscillation(jours: list[dict], rebond_min: float = 30.0, hausse: float = OS_HAUSSE, baisse: float = OS_BAISSE) -> dict | None:
+    """Allers-retours support <-> resistance d'au moins `rebond_min` %. jours = [{date, bas, haut, cloture}].
+    None si moins de 2 allers."""
+    if len(jours) < 8:
+        return None
+    pivots: list[tuple[str, int, float]] = []  # ("creux" | "sommet", index, prix)
+    mode, lo_i, hi_i = None, 0, 0
+    for i, j in enumerate(jours):
+        if mode != "haut":  # on cherche un creux
+            if j["bas"] < jours[lo_i]["bas"]:
+                lo_i = i
+            if j["haut"] >= jours[lo_i]["bas"] * (1 + hausse / 100) and j["haut"] > 0:
+                pivots.append(("creux", lo_i, jours[lo_i]["bas"]))
+                mode, hi_i = "haut", i
+                continue
+        if mode == "haut":  # on cherche un sommet
+            if j["haut"] > jours[hi_i]["haut"]:
+                hi_i = i
+            if j["bas"] <= jours[hi_i]["haut"] * (1 - baisse / 100):
+                pivots.append(("sommet", hi_i, jours[hi_i]["haut"]))
+                mode, lo_i = "bas", i
+    if mode == "haut":  # dernier sommet pas encore confirme par une baisse : on le garde (aller en cours)
+        pivots.append(("sommet", hi_i, jours[hi_i]["haut"]))
+
+    allers = []
+    for (k1, i1, p1), (k2, i2, p2) in zip(pivots, pivots[1:]):
+        if k1 == "creux" and k2 == "sommet" and p1 > 0:
+            allers.append({"date_creux": jours[i1]["date"], "creux": p1, "date_sommet": jours[i2]["date"], "sommet": p2,
+                           "i": i1, "hausse": round((p2 / p1 - 1) * 100, 1), "seances": max(1, i2 - i1)})
+    # les petits allers (+25 % d'Anoto le 02/09) fausseraient support et resistance
+    allers = [a for a in allers if a["hausse"] >= rebond_min]
+    if len(allers) < 2:
+        return None
+
+    creux = [a["creux"] for a in allers]
+    sommets = [a["sommet"] for a in allers]
+    support, resistance = statistics.median(creux), statistics.median(sommets)
+    ratio_creux = max(creux) / min(creux)
+    ratio_sommets = max(sommets) / min(sommets)
+    debuts = [a["i"] for a in allers]
+    periode = statistics.median(b - a for a, b in zip(debuts, debuts[1:])) if len(debuts) > 1 else None
+    prix = jours[-1]["cloture"]
+    return {
+        "allers": allers, "n": len(allers),
+        "support": support, "resistance": resistance,
+        "hausse_med": round(statistics.median(a["hausse"] for a in allers), 1),
+        "hausse_min": min(a["hausse"] for a in allers),
+        "seances_med": statistics.median(a["seances"] for a in allers),
+        "periode": periode,  # seances entre deux creux
+        "ratio_creux": round(ratio_creux, 2), "ratio_sommets": round(ratio_sommets, 2),
+        "regularite": "reguliere" if ratio_creux <= OS_SERRE and ratio_sommets <= OS_SERRE
+                      else "approximative" if ratio_creux <= OS_LACHE and ratio_sommets <= OS_LACHE else "irreguliere",
+        # 0 % = au support (zone d'achat), 100 % = a la resistance (zone de vente)
+        "position_pct": round(max(0.0, min(100.0, (prix - support) / (resistance - support) * 100)))
+                        if resistance > support else None,
+        "casse": prix < min(creux) * 0.85,  # passe nettement sous tous les creux : le range est rompu
+        "dernier_creux": allers[-1]["date_creux"],
     }
 
 

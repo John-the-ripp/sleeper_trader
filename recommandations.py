@@ -187,6 +187,64 @@ async def calculer() -> dict:
         ETAT["en_cours"] = False
 
 
+# ------------------------------------------------ oscillateurs type Erda / Anoto
+# "Trouve-moi des trucs comme Anoto et Erda qui font ca en regulier" : penny stocks qui font
+# des allers-retours support <-> resistance de +30-50 %. Calcul pur sur series.json (le mois
+# de seances du dernier tour du screener) : ~0,1 s pour 10 000 titres, pas de reseau.
+
+MARCHES = {"CA": "canada", "FR": "euronext", "BE": "euronext", "NL": "euronext", "PT": "euronext",
+           "SE": "nordiques", "FI": "nordiques", "DK": "nordiques", "NO": "nordiques", "IS": "nordiques"}
+BOURSE_YAHOO = {"V": "TSXV", "CN": "CSE", "TO": "TSX", "NE": "Cboe Canada", "PA": "Euronext Paris", "BR": "Euronext Bruxelles",
+                "AS": "Euronext Amsterdam", "ST": "Stockholm", "HE": "Helsinki", "CO": "Copenhague", "OL": "Oslo"}
+OSC_HAUSSE_MAX = 150.0  # au-dela, ce sont des prints aberrants (Arway 0,002 -> 0,0265), pas un range
+
+
+def _bourse(isin: str, carte: dict) -> str:
+    sym = carte.get(isin) or ""
+    if "." in sym and sym.rsplit(".", 1)[1] in BOURSE_YAHOO:
+        return BOURSE_YAHOO[sym.rsplit(".", 1)[1]]
+    return {"CA": "Canada", "FR": "Euronext Paris", "SE": "Stockholm"}.get(isin[:2], isin[:2])
+
+
+def oscillateurs(prix_min: float = 0.001, prix_max: float = 0.10, rebond_min: float = 30.0,
+                 spread_max: float = 25.0, net_min: float = 10.0) -> dict:
+    series = charger_series()
+    try:
+        carte = json.loads((BASE / "yahoo_map.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        carte = {}
+    lignes = []
+    for isin, t in (series.get("titres") or {}).items():
+        bid, ask = t.get("bid") or 0, t.get("ask") or 0
+        if not (prix_min <= bid <= prix_max) or not ask or t.get("spread", 99) > spread_max:
+            continue
+        jours = [{"date": d, "bas": b, "haut": h, "cloture": c} for d, b, h, c in t["j"]]
+        o = motifs.oscillation(jours, rebond_min=rebond_min)
+        # periode < 2 : deux allers a une seance d'ecart = le teneur de marche qui saute d'un prix a l'autre
+        if (not o or o["regularite"] == "irreguliere" or o["casse"] or o["hausse_med"] > OSC_HAUSSE_MAX
+                or (o["periode"] or 0) < 2):
+            continue
+        demi = t["spread"] / 200
+        # un cycle type : achat a l'ask au support, revente au bid a la resistance
+        net = (o["resistance"] * (1 - demi)) / (o["support"] * (1 + demi)) - 1
+        if net * 100 < net_min:
+            continue
+        lignes.append({
+            "isin": isin, "nom": t["nom"], "bid": bid, "ask": ask, "spread_pct": t["spread"],
+            "marche": MARCHES.get(isin[:2], "autres"), "bourse": _bourse(isin, carte), "hors_fuseau": t.get("hf"),
+            "dispo_ask": round(ask * (t.get("ask_size") or 0)),
+            "net_cycle": round(net * 100, 1),
+            "score": round(net * 100 * min(o["n"], 4) * (1 if o["regularite"] == "reguliere" else 0.8)),
+            "jours": [[d, b, h, c] for d, b, h, c in t["j"]],
+            **{k: o[k] for k in ("n", "support", "resistance", "hausse_med", "hausse_min", "seances_med", "periode",
+                                 "ratio_creux", "ratio_sommets", "regularite", "position_pct", "dernier_creux", "allers")},
+        })
+    lignes.sort(key=lambda l: -l["score"])
+    return {"heure": series.get("heure"), "lignes": lignes,
+            "criteres": {"prix_min": prix_min, "prix_max": prix_max, "rebond_min": rebond_min,
+                         "spread_max": spread_max, "net_min": net_min}}
+
+
 def charger() -> dict:
     try:
         return json.loads(FICHIER.read_text(encoding="utf-8"))

@@ -317,3 +317,61 @@ def prechauffer(isins: list[str]) -> None:
             comparer(isin)
         except Exception:
             continue
+
+
+# ------------------------------------------------ ce prix dans toute l'histoire du titre
+# Demande du 26/09 : "le LLM doit dire si l'action a deja eu ce prix ou si c'est la premiere
+# fois, en analysant tout son graphique". Les bougies TR ne suffisent pas (Erda : sur LSX
+# depuis le 11/08/2026 seulement) : on prend tout l'historique du marche d'origine (Yahoo,
+# ERDA.V depuis 1996). Tout est compare dans la DEVISE D'ORIGINE (pas de conversion) et sur
+# des prix ajustes des regroupements d'actions (Anoto : 4058 SEK "ajustes" en 2000).
+_HIST_LONG: dict[str, tuple[float, dict | None]] = {}
+
+
+def historique_long(isin: str) -> dict | None:
+    """Faits calcules (pas par le LLM) : plus bas/haut historiques, derniere fois a ce prix,
+    part du temps passe sous ce prix. Cache 12 h. None si pas de symbole Yahoo."""
+    if isin in _HIST_LONG and time.time() - _HIST_LONG[isin][0] < 12 * 3600:
+        return _HIST_LONG[isin][1]
+    res = None
+    sym = symbole(isin)
+    if sym:
+        try:
+            tk = yf.Ticker(sym)
+            h = _hist(tk, period="max", interval="1d")
+            devise = (tk.fast_info.get("currency") or "").upper() or None
+        except Exception:
+            h, devise = None, None
+        if h is not None and len(h) >= 20:
+            prix = float(h["Close"].iloc[-1])
+            passe = h.iloc[:-5]  # hors derniere semaine : "deja vu" = avant le mouvement actuel
+            bas_i, haut_i = passe["Low"].idxmin(), passe["High"].idxmax()
+            # derniere seance (avant la derniere semaine) ou ce prix etait dans la fourchette du jour
+            dans = passe[(passe["Low"] <= prix * 1.03) & (passe["High"] >= prix * 0.97)]
+            derniere = dans.index[-1] if len(dans) else None
+            # la meme chose AVANT le dernier mois : "premiere fois depuis quand ?"
+            import pandas as pd
+            vieux = dans[dans.index < h.index[-1] - pd.Timedelta(days=30)]
+            avant_mois = vieux.index[-1] if len(vieux) else None
+            dates = lambda i: i.date().isoformat()  # noqa: E731
+
+            def part_sous(n_jours: int | None) -> float | None:
+                p = passe if n_jours is None else passe[passe.index >= passe.index[-1] - __import__("pandas").Timedelta(days=n_jours)]
+                return round(float((p["Close"] < prix).mean() * 100), 1) if len(p) else None
+
+            res = {
+                "symbole": sym, "devise": devise, "prix": round(prix, 6), "depuis": dates(h.index[0]), "seances": len(h),
+                "plus_bas": round(float(passe["Low"].min()), 6), "date_plus_bas": dates(bas_i),
+                "plus_haut": round(float(passe["High"].max()), 6), "date_plus_haut": dates(haut_i),
+                "vs_plus_haut_pct": round((prix / float(passe["High"].max()) - 1) * 100, 1),
+                "nouveau_plus_bas": prix < float(passe["Low"].min()),
+                "nouveau_plus_haut": prix > float(passe["High"].max()),
+                "deja_vu": derniere is not None,
+                "derniere_fois": dates(derniere) if derniere is not None else None,
+                "jours_a_ce_prix": int(len(dans)),
+                "derniere_fois_avant_mois": dates(avant_mois) if avant_mois is not None else None,
+                # % des clotures passees SOUS le prix actuel : 0 % = jamais aussi bas
+                "sous_ce_prix_1a": part_sous(365), "sous_ce_prix_5a": part_sous(5 * 365), "sous_ce_prix_tout": part_sous(None),
+            }
+    _HIST_LONG[isin] = (time.time(), res)
+    return res
