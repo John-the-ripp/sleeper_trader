@@ -44,7 +44,7 @@ Format (titres en gras, puces courtes) :
 **En bref** — 1 à 2 phrases.
 **Ce qui explique les mouvements** — puces « date : mouvement → news (source) ».
 **Motif chute → rebond** — le motif est-il crédible ? combien d'occurrences ? échantillon suffisant ?
-**Ce prix dans l'histoire** — le titre a-t-il déjà coté à ce niveau ou est-ce une première (nouveau plus bas / plus haut historique) ? quand pour la dernière fois ? où se situe-t-il par rapport à son plus haut et à son année ? Utilise uniquement le bloc « Historique complet » (calculé, pas à recalculer) ; s'il est absent, dis que l'historique long n'est pas disponible.
+**Ce prix dans l'histoire** — le titre a-t-il déjà coté à ce niveau ou est-ce une première (nouveau plus bas / plus haut historique) ? quand pour la dernière fois ? où se situe-t-il par rapport à son plus haut et à son année ? Utilise uniquement le bloc « Historique complet » (calculé, pas à recalculer), dans SA devise : ne compare jamais ces prix avec le bid/ask LSX en EUR (devises différentes) ; s'il est absent, dis que l'historique long n'est pas disponible.
 **Points de vigilance** — spread, liquidité, fiabilité des cotations, taille de l'échantillon."""
 
 
