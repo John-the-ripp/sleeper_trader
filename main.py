@@ -19,12 +19,15 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel
 
+import achat
 import analyste
 import live
 import origine
+import evenements
 import explications
 import flouz
 import picks
+import rebonds
 import recommandations
 import regles
 import paper
@@ -49,7 +52,8 @@ async def lifespan(_app):
               asyncio.create_task(regles.boucle_regles()),
               asyncio.create_task(live.boucle()),
               asyncio.create_task(tweets.boucle_notif()),
-              asyncio.create_task(flouz.boucle()),  # FLOUZMULATEUR : objectifs/stops/robot 5 min, LLM 30 min (en seance)  # notification a chaque nouveau tweet suivi
+              asyncio.create_task(flouz.boucle()),
+              asyncio.create_task(achat.boucle()),  # ask LSX sous le vrai prix : 5 min, 7h30-23h  # FLOUZMULATEUR : objectifs/stops/robot 5 min, LLM 30 min (en seance)  # notification a chaque nouveau tweet suivi
               asyncio.create_task(explications.prechauffer_origine())]  # cache LSX/origine des le demarrage
     yield
     for t in taches:
@@ -451,10 +455,15 @@ def route_downup(spread_max: float = 20, asie: bool = False, tous: bool = False)
     return {"heure": data["heure"], "total": len(data["lignes"]), "lignes": lignes[:300]}
 
 
-@app.get("/api/rebonds/avant")
-def route_avant_rebond():
-    """Titres qui chutent aujourd'hui, classes selon leur historique de rebond (a acheter AVANT)."""
-    return explications.avant_rebond()
+@app.get("/api/rebonds/profils")
+async def route_rebonds_profils():
+    """Vue unique des rebonds : habitude (4 detecteurs) + etat actuel -> fait / action / a confirmer /
+    couteau / en veille. Les titres actionnables sont recotes EN DIRECT (bid = ask, cotation figee et
+    spread trop large sont ecartes : cas Mondo TV 28/09)."""
+    res = await asyncio.to_thread(rebonds.profils)
+    a_recoter = [l["isin"] for l in res["lignes"] if l["categorie"] in ("action", "ask_haut", "a_confirmer", "fait")]
+    live = await tickers(a_recoter, timeout=10) if a_recoter else {}
+    return rebonds.avec_cotes_live(res, live, datetime.now(picks.PARIS))
 
 
 @app.get("/api/rebonds")
@@ -492,8 +501,51 @@ async def flux(isin: str, request: Request):
 
 @app.get("/api/origine/{isin}")
 async def route_origine(isin: str):
-    """LSX vs vrai marche (yfinance, en EUR) : ecart, decrochages, rattrapages, verdict."""
-    return await asyncio.to_thread(origine.comparer, isin)
+    """LSX vs vrai marche (yfinance, en EUR) : ecart, decrochages, rattrapages, verdict,
+    nuance par les operations sur titre (dividende, regroupement) a venir."""
+    r, ev = await asyncio.gather(asyncio.to_thread(origine.comparer, isin),
+                                 asyncio.to_thread(evenements.evenements, isin, NOMS.get(isin, isin)))
+    return origine.avec_evenements(r, ev)
+
+
+@app.get("/api/achat")
+def route_achat(spread_max: float = achat.SPREAD_MAX):
+    """Signaux d'achat : ask LSX sous le vrai prix (dernier scan, toutes les 5 min de 7h30 a 23h).
+    spread_max : l'ecart ask / bid accepte (reglage de l'accueil, 10 % par defaut)."""
+    r = achat.charger()
+    return {**r, "signaux": [s for s in r.get("signaux", []) if s.get("spread", 0) <= spread_max],
+            "seuil": achat.SEUIL, "spread_max": spread_max}
+
+
+@app.post("/api/achat/scanner")
+async def route_achat_scanner(spread_max: float = achat.SPREAD_MAX):
+    """Relance le scan maintenant (bouton de l'accueil)."""
+    if achat.ETAT["en_cours"]:
+        raise HTTPException(409, "scan deja en cours")
+    r = await achat.scanner()
+    return {**r, "signaux": [s for s in r["signaux"] if s.get("spread", 0) <= spread_max],
+            "seuil": achat.SEUIL, "spread_max": spread_max}
+
+
+@app.get("/api/reel/{isin}")
+async def route_reel(isin: str):
+    """Ca baisse AUSSI sur le vrai marche ? Variation du jour a l'origine vs variation du bid LSX
+    EN DIRECT (le soir, L&S ecarte sa fourchette : Anoto -46 %, Biophytis -33 % le 28/09 alors que
+    Stockholm / Paris etaient a +4 % / -1 %)."""
+    t, reel_eur = await asyncio.gather(tickers([isin], timeout=8), asyncio.to_thread(origine.prix_reel, isin))
+    t = t.get(isin) or {}
+    bid, ask = picks._prix(t, "bid"), picks._prix(t, "ask")
+    vrai = reel_eur[0] if reel_eur else None
+    ecart_bid = round((bid / vrai - 1) * 100, 1) if bid and vrai else None
+    ecart_ask = round((ask / vrai - 1) * 100, 1) if ask and vrai else None
+    r = await asyncio.to_thread(origine.jour_reel, isin, ecart_bid)
+    return {"isin": isin, "bid": bid, "ask": ask, "vrai_eur": vrai, "ecart_bid": ecart_bid, "ecart_ask": ecart_ask, "reel": r}
+
+
+@app.get("/api/evenements/{isin}")
+async def route_evenements(isin: str):
+    """Dividendes, regroupements, divisions, fusions, augmentations de capital (Yahoo + news)."""
+    return await asyncio.to_thread(evenements.evenements, isin, NOMS.get(isin, isin))
 
 
 @app.get("/api/prevision/{isin}")

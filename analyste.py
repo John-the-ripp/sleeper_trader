@@ -20,6 +20,7 @@ from datetime import datetime
 import requests
 from dotenv import load_dotenv
 
+import evenements
 import motifs
 import news
 import origine
@@ -34,18 +35,23 @@ CACHE_S = 3600
 
 SYSTEME = """Tu es un analyste boursier prudent qui aide un particulier à comprendre les mouvements d'une action.
 Règles strictes :
-- Réponds en français, de façon concise (220 mots maximum).
+- Réponds en français, de façon concise (300 mots maximum).
 - Utilise UNIQUEMENT les données fournies. N'invente aucun chiffre, aucune news, aucune date.
 - Quand tu relies un mouvement à une news, cite la date et la source. Si aucune news n'explique un mouvement, dis-le clairement.
 - Les tweets (X) sont des signaux d'attention, pas des faits : cite le compte (@...) et ne les confonds pas avec des news.
 - Les prix viennent de cotations Lang & Schwarz, parfois peu fiables sur les petites valeurs : tiens compte des drapeaux fournis.
-- Ne donne aucun conseil d'achat ou de vente.
+- Ne dis jamais « achète » ou « vends » : tu donnes un point de vue prudent de professionnel, pas un ordre.
 Format (titres en gras, puces courtes) :
 **En bref** — 1 à 2 phrases.
 **Ce qui explique les mouvements** — puces « date : mouvement → news (source) ».
 **Motif chute → rebond** — le motif est-il crédible ? combien d'occurrences ? échantillon suffisant ?
 **Ce prix dans l'histoire** — le titre a-t-il déjà coté à ce niveau ou est-ce une première (nouveau plus bas / plus haut historique) ? quand pour la dernière fois ? où se situe-t-il par rapport à son plus haut et à son année ? Utilise uniquement le bloc « Historique complet » (calculé, pas à recalculer), dans SA devise : ne compare jamais ces prix avec le bid/ask LSX en EUR (devises différentes) ; s'il est absent, dis que l'historique long n'est pas disponible.
-**Points de vigilance** — spread, liquidité, fiabilité des cotations, taille de l'échantillon."""
+**Points de vigilance** — spread, liquidité, fiabilité des cotations, taille de l'échantillon, opérations sur titre à venir (dividende, regroupement, fusion, augmentation de capital : explique leur effet mécanique sur le cours).
+**Point de vue prudent** — commence EXACTEMENT par l'un de ces mots : « Attendre », « Surveiller », « Éviter » ou « Opportunité à étudier », puis :
+- pourquoi, en 1 à 2 phrases, comme un professionnel prudent qui expliquerait à un particulier ;
+- « À attendre avant de décider : » les événements ou informations datés qui lèveraient l'incertitude (ouverture du marché d'origine, date de détachement, fin d'une opération, prochaine news…) ;
+- « Ce qui changerait l'avis : » un ou deux signaux concrets.
+Par défaut, en cas d'incertitude, d'opération sur titre imminente ou de cotations peu fiables, choisis « Attendre »."""
 
 
 def _llm(messages: list[dict], max_tokens: int = 900) -> str:
@@ -64,7 +70,7 @@ def _llm(messages: list[dict], max_tokens: int = 900) -> str:
 
 
 def _contexte(nom: str, isin: str, t: dict, jours: list[dict], m: dict, flags: list[str], articles: list[dict],
-              posts: list[dict], hl: dict | None = None) -> str:
+              posts: list[dict], hl: dict | None = None, ev: dict | None = None) -> str:
     bid, ask = picks._prix(t, "bid"), picks._prix(t, "ask")
     lignes = [f"Titre : {nom} (ISIN {isin})", f"Aujourd'hui : {datetime.now(picks.PARIS):%A %d/%m/%Y %H:%M}"]
     if bid and ask:
@@ -107,6 +113,16 @@ def _contexte(nom: str, isin: str, t: dict, jours: list[dict], m: dict, flags: l
     else:
         lignes.append("\nHistorique complet : indisponible (pas de symbole Yahoo pour ce titre).")
 
+    if ev and ev.get("evenements"):
+        lignes.append("\nOpérations sur titre (détectées dans les news et le calendrier Yahoo) :")
+        for e in ev["evenements"]:
+            quoi = " ".join(x for x in (e.get("ratio"), e.get("montant")) if x)
+            lignes.append(f"- {e['libelle']}{' ' + quoi if quoi else ''} : {e['nature_date']} le {e['date']}"
+                          f"{' (À VENIR)' if e['a_venir'] else ''}{', paiement le ' + e['paiement'] if e.get('paiement') else ''}"
+                          f" — effet : {e['effet']}")
+    if ev and ev.get("resultats"):
+        lignes.append(f"- Prochains résultats : {ev['resultats']}")
+
     lignes.append(f"\nNews des 30 derniers jours ({len(articles)}) :")
     for a in articles:
         lignes.append(f"- {a['date'][:10]} | {a['source']} | {a['titre']}")
@@ -136,6 +152,7 @@ async def analyser(isin: str, nom: str, force: bool = False) -> dict:
     jours = picks.jours_depuis_bougies((hist.get(isin) or {}).get("aggregates", []))
     m = motifs.chute_rebond(jours)
     t = live.get(isin) or {}
+    ev = await asyncio.to_thread(evenements.evenements, isin, nom, articles)  # reutilise les news deja trouvees
 
     pick = next((l for l in picks.charger_dernier()["lignes"] if l["isin"] == isin), None)
     mvt = next((l for l in picks.charger_mouvements()["lignes"] if l["isin"] == isin), None)
@@ -151,7 +168,7 @@ async def analyser(isin: str, nom: str, force: bool = False) -> dict:
     try:
         resume = await asyncio.to_thread(_llm, [
             {"role": "system", "content": SYSTEME},
-            {"role": "user", "content": _contexte(nom, isin, t, jours, m, flags, articles, posts, hl)},
+            {"role": "user", "content": _contexte(nom, isin, t, jours, m, flags, articles, posts, hl, ev)},
         ])
     except Exception as exc:  # le reste (news + motif) reste utile sans le LLM
         erreur = f"{type(exc).__name__}: {exc}"[:300]
@@ -159,7 +176,7 @@ async def analyser(isin: str, nom: str, force: bool = False) -> dict:
     resultat = {
         "isin": isin, "heure": datetime.now(picks.PARIS).isoformat(timespec="seconds"),
         "modele": os.environ.get("MODEL_NAME"), "recherche": news.nom_de_recherche(nom),
-        "resume": resume, "erreur": erreur, "motif": m, "news": articles, "tweets": posts, "historique": hl,
+        "resume": resume, "erreur": erreur, "motif": m, "news": articles, "tweets": posts, "historique": hl, "operations": ev,
     }
     if resume:
         CACHE[isin] = (time.time(), resultat)

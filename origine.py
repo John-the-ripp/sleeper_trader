@@ -375,3 +375,79 @@ def historique_long(isin: str) -> dict | None:
             }
     _HIST_LONG[isin] = (time.time(), res)
     return res
+
+
+def avec_evenements(r: dict, ev: dict | None) -> dict:
+    """Nuance le verdict quand une operation sur titre explique l'ecart (VerifyMe 28/09 : dividende
+    de ~16 % detache le lendemain + regroupement 1 pour 10 -> ce n'etait pas un "decrochage").
+    Appele seulement a l'ouverture d'une fiche : chercher les news de centaines de titres a chaque
+    tour (prechauffer) serait trop lent."""
+    import evenements  # import tardif : evenements importe origine
+    es = evenements.justifie_ecart(ev) if ev else []
+    # seuil de 5 % et pas le niveau du verdict : a -19 %, le verdict dit "aligne" (seuil -20 %)
+    if not r.get("dispo") or not es or abs(r["ecart_bid"]) < 5:
+        return {**r, "operations": ev}
+
+    def phrase(e: dict) -> str:
+        if e["type"] == "dividende":
+            return (f"le dividende{' (' + e['montant'] + ')' if e.get('montant') else ''} se détache le {e['date']} : "
+                    "après cette date, le cours baisse mécaniquement de son montant")
+        return (f"{'regroupement' if e['type'] == 'regroupement' else 'division'} {e.get('ratio') or ''} effectif le {e['date']} : "
+                "les cotations LSX sont souvent chaotiques autour de cette date")
+
+    return {**r, "operations": ev, "verdict": {
+        "niveau": "evenement", "titre": "Écart en partie expliqué : " + " + ".join(e["libelle"].lower() for e in es),
+        "texte": f"Le bid LSX est {r['ecart_bid']:+.0f} % et l'ask {r['ecart_ask']:+.0f} % par rapport à la dernière clôture du marché "
+                 f"d'origine. ⚠ Mais " + " ; et ".join(phrase(e) for e in es) + ". Cette clôture date d'AVANT ces événements : "
+                 "L&S les anticipe peut-être à raison. Attends l'ouverture du marché d'origine et la date de l'événement avant "
+                 "de conclure à un décrochage."}}
+
+
+# ------------------------------------------------ "est-ce que ca baisse AUSSI a Stockholm ?"
+# Demande du 28/09 (Anoto : bid LSX -46 % a 20h, ask +51 %). La variation du jour sur le marche
+# d'origine, comparee a celle de LSX, dit si la chute est REELLE ou si c'est L&S qui ecarte sa
+# fourchette. Les % sont calcules dans la devise d'origine : pas besoin de conversion.
+_CACHE_JOUR: dict[str, tuple[float, dict | None]] = {}
+CHUTE_REELLE = -5.0   # a partir de -5 % sur le vrai marche, la baisse est reelle
+
+
+def jour_reel(isin: str, var_lsx: float | None = None) -> dict | None:
+    """Variation du jour sur le marche d'origine + verdict par rapport a LSX. Cache 5 min."""
+    if isin in _CACHE_JOUR and time.time() - _CACHE_JOUR[isin][0] < 300:
+        res = _CACHE_JOUR[isin][1]
+        return res and {**res, **_verdict_jour(res["var_pct"], var_lsx, res["ouvert"])}
+    res = None
+    sym = symbole(isin)
+    if sym:
+        try:
+            h = _hist(yf.Ticker(sym), period="5d", interval="5m")
+        except Exception:
+            h = None
+        if h is not None and not h.empty:
+            jours = sorted({d.date() for d in h.index})
+            if len(jours) >= 2:
+                seance = h[[d.date() == jours[-1] for d in h.index]]
+                veille = float(h[[d.date() == jours[-2] for d in h.index]]["Close"].iloc[-1])
+                dernier = seance.index[-1].tz_convert("Europe/Paris")
+                prix = float(seance["Close"].iloc[-1])
+                # "ouvert" = un echange dans les 20 dernieres minutes (Yahoo a ~15 min de retard)
+                ouvert = (datetime.now(dernier.tzinfo) - dernier.to_pydatetime()).total_seconds() < 35 * 60
+                res = {"symbole": sym, "jour": jours[-1].isoformat(), "prix": round(prix, 6), "veille": round(veille, 6),
+                       "var_pct": round((prix / veille - 1) * 100, 1),
+                       "plus_bas_pct": round((float(seance["Low"].min()) / veille - 1) * 100, 1),
+                       "dernier_echange": dernier.strftime("%H:%M"), "ouvert": ouvert,
+                       "volume": int(seance["Volume"].sum())}
+    _CACHE_JOUR[isin] = (time.time(), res)
+    return res and {**res, **_verdict_jour(res["var_pct"], var_lsx, res["ouvert"])}
+
+
+def _verdict_jour(var_reel: float, ecart_bid: float | None, ouvert: bool) -> dict:
+    """ecart_bid = bid LSX / vrai prix (en EUR) - 1. Plus fiable qu'une variation LSX : pour les
+    titres hors du screener (Biophytis, spread > 50 %), la reference LSX de la veille manque."""
+    marche = "ouvert" if ouvert else "fermé"
+    if var_reel <= CHUTE_REELLE:
+        return {"verdict": "reelle", "texte": f"Chute RÉELLE : le vrai marché ({marche}) est aussi à {var_reel:+.1f} % aujourd'hui."}
+    if ecart_bid is not None and ecart_bid <= -10:
+        return {"verdict": "lsx", "texte": f"Chute LSX SEULEMENT : le bid LSX est {ecart_bid:+.0f} % sous le vrai prix, mais le vrai marché "
+                                          f"({marche}) est à {var_reel:+.1f} % aujourd'hui. C'est L&S qui écarte sa fourchette : pas une vraie baisse."}
+    return {"verdict": "aligne", "texte": f"Vrai marché ({marche}) : {var_reel:+.1f} % aujourd'hui ; LSX aligné."}

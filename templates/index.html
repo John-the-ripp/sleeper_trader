@@ -327,6 +327,36 @@ tbody tr.sel td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
 .fz .jr small { display: block; color: var(--ink-3); font-size: 11px; }
 .fz .blanc { font: 600 10px Geist; padding: 1px 5px; border-radius: 4px; background: var(--panel-3); color: var(--ink-3); margin-left: 6px; }
 @media (max-width: 900px) { .fz-wal { grid-template-columns: 1fr; } }
+.avis { display: inline-flex; align-items: center; gap: 6px; font: 600 11px Geist; text-transform: uppercase; letter-spacing: .05em;
+  padding: 4px 9px; border-radius: 6px; margin-bottom: 8px; }
+.avis.attendre { background: var(--warn-2); color: var(--warn); } .avis.surveiller { background: var(--accent-2); color: var(--accent); }
+.avis.eviter { background: var(--down-2); color: var(--down); } .avis.opportunite { background: var(--up-2); color: var(--up); }
+.ops { display: grid; gap: 6px; margin-top: 6px; }
+.ops div { border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-size: 12px; line-height: 1.4; }
+.ops div.venir { border-color: var(--warn); background: var(--warn-2); }
+.ops b { display: block; font-size: 12.5px; }
+.ops small { color: var(--ink-3); }
+.vd.evenement { background: var(--warn-2); color: var(--warn); }
+.reel { border-radius: 10px; padding: 10px 12px; margin-bottom: 10px; font-size: 12.5px; line-height: 1.45; border: 1px solid var(--line); }
+.reel.lsx { background: var(--warn-2); border-color: var(--warn); }
+.reel.reelle { background: var(--down-2); border-color: var(--down); }
+.reel.aligne { background: var(--up-2); border-color: var(--up); }
+.reel b.t { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 3px; }
+.reel .g { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 8px; font-size: 11px; color: var(--ink-3); }
+.reel .g b { display: block; font: 600 13px "Geist Mono"; color: var(--ink); }
+.reel-mini { font-size: 11.5px; margin-top: 6px; padding: 4px 8px; border-radius: 6px; display: inline-block; }
+.reel-mini.lsx { background: var(--warn-2); color: var(--warn); } .reel-mini.reelle { background: var(--down-2); color: var(--down); }
+.reel-mini.aligne { background: var(--up-2); color: var(--up); } .reel-mini.attente { color: var(--ink-3); }
+.achat { margin: 12px; border: 2px solid var(--up); border-radius: 12px; background: var(--up-2); padding: 12px 14px; }
+.achat h3 { margin: 0; font-size: 13px; letter-spacing: .04em; text-transform: uppercase; color: var(--up); display: flex; align-items: center; gap: 8px; }
+.achat h3 small { margin-left: auto; font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--ink-3); font-size: 11.5px; }
+.achat.vide { border: 1px dashed var(--line-2); background: var(--panel-2); }
+.achat.vide h3 { color: var(--ink-2); }
+.achat table { width: 100%; margin-top: 8px; font-size: 12.5px; }
+.achat td, .achat th { padding: 6px 8px; text-align: right; } .achat td.l, .achat th.l { text-align: left; }
+.achat tr[data-isin] { cursor: pointer; } .achat tr[data-isin]:hover { background: var(--panel); }
+.achat .risque { font-size: 11.5px; color: var(--ink-2); margin-top: 8px; line-height: 1.45; }
+.al .ic.ask_bas { background: var(--up-2); color: var(--up); font-weight: 700; }
 .cat.inconnu { background: var(--panel-2); color: var(--ink-3); border: 1px solid var(--line); }
 .why { display: flex; align-items: center; gap: 8px; min-width: 250px; max-width: 420px; white-space: normal; text-align: left; }
 .why .c { font-size: 12px; color: var(--ink-2); line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
@@ -353,6 +383,7 @@ td.whytd { text-align: left; }
 .cat.a_confirmer { background: var(--warn-2); color: var(--warn); }
 .cat.couteau { background: var(--down-2); color: var(--down); }
 #v-rebonds [hidden], #tb-rebonds [hidden] { display: none !important; }
+#t-rebonds-box { padding: 0 12px 12px; }
 .rc .why2 { display: grid; grid-template-columns: 64px 1fr; gap: 4px 10px; font-size: 12.5px; line-height: 1.4; margin-top: 8px; }
 .rc .why2 span:nth-child(odd) { color: var(--ink-3); font-size: 11.5px; padding-top: 1px; }
 .rc .foot { display: flex; gap: 8px; align-items: center; margin-top: 10px; font-size: 11.5px; color: var(--ink-3); flex-wrap: wrap; }
@@ -649,7 +680,30 @@ td.whytd { text-align: left; }
 .seg button:hover { color: var(--ink); }
 .seg button.on { background: var(--panel-3); color: var(--ink); box-shadow: 0 0 0 1px var(--line-2) inset; }
 .chartbox { position: relative; height: 290px; border-radius: 10px; overflow: hidden; border: 1px solid var(--line); }
-#chart { position: absolute; inset: 0; }
+#chart { position: absolute; inset: 0; transition: opacity .2s, filter .2s; }
+/* chargement d'un autre titre : l'ancien graphique s'efface, des bougies animees apparaissent */
+.chart-load { position: absolute; inset: 0; z-index: 5; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+  font: 12px Geist; color: var(--ink-2); pointer-events: none; }
+.chartbox.loading .chart-load { display: flex; }
+.chartbox.loading #chart { opacity: .15; filter: blur(3px) grayscale(1); }
+.chart-load .barres { display: flex; align-items: flex-end; gap: 5px; height: 60px; }
+.chart-load .barres i { display: block; width: 7px; border-radius: 2px; background: var(--accent); opacity: .85; animation: bougie 1s ease-in-out infinite; }
+.chart-load .barres i:nth-child(3n) { background: var(--down); }
+.chart-load .barres i:nth-child(3n+1) { background: var(--up); }
+.chart-load .barres i:nth-child(1) { animation-delay: 0.00s; height: 30%; }
+.chart-load .barres i:nth-child(2) { animation-delay: 0.08s; height: 45%; }
+.chart-load .barres i:nth-child(3) { animation-delay: 0.16s; height: 25%; }
+.chart-load .barres i:nth-child(4) { animation-delay: 0.24s; height: 55%; }
+.chart-load .barres i:nth-child(5) { animation-delay: 0.32s; height: 40%; }
+.chart-load .barres i:nth-child(6) { animation-delay: 0.40s; height: 60%; }
+.chart-load .barres i:nth-child(7) { animation-delay: 0.48s; height: 35%; }
+.chart-load .barres i:nth-child(8) { animation-delay: 0.56s; height: 50%; }
+.chart-load .barres i:nth-child(9) { animation-delay: 0.64s; height: 28%; }
+.chart-load .barres i:nth-child(10) { animation-delay: 0.72s; height: 48%; }
+.chart-load .barres i:nth-child(11) { animation-delay: 0.80s; height: 38%; }
+.chart-load .barres i:nth-child(12) { animation-delay: 0.88s; height: 58%; }
+@keyframes bougie { 0%, 100% { transform: scaleY(.35); } 50% { transform: scaleY(1); } }
+@media (prefers-reduced-motion: reduce) { .chart-load .barres i { animation: none; } }
 .legend { position: absolute; top: 8px; left: 10px; z-index: 3; font: 11px "Geist Mono"; color: var(--ink-3); pointer-events: none; display: flex; gap: 10px; flex-wrap: wrap; }
 .legend b { color: var(--ink); font-weight: 500; }
 .loading::after {
@@ -738,9 +792,9 @@ td.whytd { text-align: left; }
       <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17V5"/><path d="m3 9 4-4 4 4"/><path d="M17 7v12"/><path d="m21 15-4 4-4-4"/></svg>
       <span class="tip">Chutes &amp; hausses <kbd>2</kbd></span>
     </button>
-    <button class="nav" data-view="rebonds" aria-label="Rebonds du jour">
+    <button class="nav" data-view="rebonds" aria-label="Rebonds">
       <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5l6 9 4-4 8 9"/><path d="M15 19h6v-6"/></svg>
-      <span class="badge" id="b-rebonds" hidden></span><span class="tip">Rebonds du jour · chute hier, hausse aujourd'hui <kbd>3</kbd></span>
+      <span class="badge" id="b-rebonds" hidden></span><span class="tip">Rebonds · déjà faits, à prendre, en veille <kbd>3</kbd></span>
     </button>
     <button class="nav" data-view="downup" aria-label="DOWN/UP Anoto-like">
       <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8l4 8 4-8 4 8 4-8 4 8"/></svg>
@@ -856,8 +910,13 @@ td.whytd { text-align: left; }
             <button class="chip" id="m-trous" aria-pressed="true" title="Historique TR arrêté depuis plus de 4 jours : la référence est périmée (souvent une suspension de cotation)"><span class="ck"></span>Sans historique interrompu</button>
           </div>
           <div class="toolbar" id="tb-rebonds" hidden>
-            <div class="seg" id="r-mode"><button data-m="faits" class="on">Ont rebondi</button><button data-m="avant">Avant le rebond</button></div>
-            <div class="seg" id="r-jours"></div>
+            <button class="chip" id="r-toujours" aria-pressed="true" title="Seulement les titres qui ont rebondi à CHAQUE chute (100 %), au moins 2 fois"><span class="ck"></span>Toujours rebondi (100 %)</button>
+            <div class="seg" id="r-cat"><button data-c="">Tout</button><button data-c="action" class="on">🎯 À prendre</button><button data-c="ask_haut">⚠ Ask trop haut</button><button data-c="fait">✓ Déjà fait</button>
+              <button data-c="a_confirmer">? À confirmer</button><button data-c="couteau">✕ Couteaux</button><button data-c="en_veille">👁 En veille</button></div>
+            <label class="field">Rechercher<input id="r-q" type="search" placeholder="nom, ISIN…" style="width:150px"></label>
+            <div class="seg" id="r-vue"><button data-v="cartes" class="on">Cartes</button><button data-v="liste">Liste</button></div>
+            <label class="field" title="Écart maximum entre ton prix d'achat (ask) et le prix affiché (bid)">Spread ≤<input id="r-spread" type="number" min="1" max="50" step="1" style="width:46px">%</label>
+            <label class="field" title="Ton prix d'achat (ask) au plus X % au-dessus du prix d'entrée (le support d'où il a rebondi). Vide = pas de filtre.">Entrée ≤ +<input id="r-entree" type="number" min="0" max="50" step="1" style="width:46px">%</label>
             <span class="count-lbl" id="r-info"></span>
             <span class="grow"></span>
             <span class="count-lbl" id="r-ia"></span>
@@ -944,14 +1003,20 @@ td.whytd { text-align: left; }
               <th class="hide-m hide-l" id="m-th-ref">Veille</th><th>Actuel</th><th title="Prix auquel tu achètes">Ask</th><th>Spread</th><th style="width:40px"></th>
             </tr></thead><tbody id="t-moves"></tbody></table>
           </div>
-          <div class="scroll" id="v-rebonds" hidden><div class="rgrid" id="g-rebonds"></div>
-            <div id="av-zone" hidden>
-              <div class="avert">⚠ <b>Pas une prédiction.</b> Titres qui chutent d'au moins 10 % aujourd'hui (spread ≤ 20 %), classés selon <b>leur propre passé</b> sur le mois :
-                <b class="up">rebond habituel</b> (au moins 2 chutes passées rachetées ≥ 60 % du temps, DOWN/UP confirmé ou oscillateur au support),
-                <b style="color:var(--warn)">à confirmer</b> (une seule chute passée, rachetée), <b class="down">couteau qui tombe</b> (aucun rebond connu).
-                <b>Net attendu</b> = rebond moyen passé − spread. Vérifie la cause de la chute avant d'acheter.</div>
-              <div class="rgrid" id="g-avant"></div>
-            </div></div>
+          <div class="scroll" id="v-rebonds" hidden>
+            <div id="achat-zone"></div>
+            <div class="avert">⚠ <b>Pas une prédiction.</b> Chaque titre est classé selon <b>son propre passé</b> sur le mois (4 détecteurs : rebond le lendemain,
+              chute rachetée en ≤ 5 séances, support touché puis racheté, oscillation) et <b>où il en est maintenant</b>.
+              <b>« À prendre »</b> = rebondit d'habitude (≥ 2 fois, ≥ 60 %), est en chute / au support / en phase DOWN, n'a pas encore rebondi,
+              <b>et laisse au moins +10 % de bénéfice en achetant à l'ask d'aujourd'hui</b>. Le graphique suit le <b>bid</b> : quand le prix « chute »,
+              l'ask (ton prix d'achat) reste souvent haut. Ces titres-là sont dans « Ask trop haut ». Vérifie toujours la cause de la chute (dilution, résultats…) avant d'agir.</div>
+            <div class="rgrid" id="g-rebonds"></div>
+            <div id="t-rebonds-box" hidden><table><thead><tr>
+              <th class="l">Titre</th><th class="l">Catégorie</th><th title="Prix auquel tu vends">Bid</th><th title="Prix auquel tu achètes">Ask</th>
+              <th title="Prix d'entrée : le support d'où il a rebondi">Entrée</th><th title="Ton prix d'achat (ask) par rapport au prix d'entrée">Ask vs entrée</th><th title="Résistance / objectif réaliste">Objectif</th>
+              <th title="Achat à l'ask actuel, revente à l'objectif : le bénéfice possible">Bénéfice possible</th><th>A rebondi</th><th title="Rebond moyen passé − spread">Net / rebond</th>
+              <th>Spread</th><th class="l">Maintenant</th><th style="width:40px"></th></tr></thead><tbody id="t-rebonds"></tbody></table></div>
+          </div>
           <div class="scroll" id="v-downup" hidden><div class="dgrid" id="g-downup"></div></div>
           <div class="scroll" id="v-ranges" hidden><div class="dgrid" id="g-ranges"></div></div>
           <div class="scroll" id="v-simu" hidden>
@@ -1011,7 +1076,8 @@ td.whytd { text-align: left; }
                   <div class="seg" id="d-ranges"><button data-r="1d">1J</button><button data-r="5d">5J</button><button data-r="1m" class="on">1M</button><button data-r="3m">3M</button><button data-r="1y">1A</button></div>
                 </div>
               </div>
-              <div class="chartbox" id="chartbox"><div class="legend" id="legend"></div><div id="chart"></div></div>
+              <div class="chartbox" id="chartbox"><div class="legend" id="legend"></div><div id="chart"></div>
+                <div class="chart-load" aria-live="polite"><div class="barres"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span id="chart-load-t">Chargement…</span></div></div>
             </div>
             <div class="sec" id="sec-orig">
               <div class="sec-h"><h3>LSX vs marché d'origine</h3><span class="faint" style="margin-left:auto;font-size:11.5px" id="or-sub">pourquoi ça chute sur LSX ?</span></div>
@@ -1081,6 +1147,7 @@ td.whytd { text-align: left; }
     <button class="chip" data-at="decroche" aria-pressed="true" title="Le bid LSX d'un titre surveillé décroche sous le vrai prix"><span class="ck"></span>Décrochage LSX</button>
     <button class="chip" data-at="realigne" aria-pressed="true" title="Le bid LSX se réaligne sur le vrai prix (moment de vendre)"><span class="ck"></span>Réalignement</button>
     <button class="chip" data-at="plancher" aria-pressed="true" title="Un titre en range revient toucher son plancher (zone d'achat)"><span class="ck"></span>Range au plancher</button>
+    <button class="chip" data-at="ask_bas" aria-pressed="true" title="L'ask LSX passe au moins 10 % sous le vrai prix : moment d'acheter"><span class="ck"></span>Ask sous le vrai prix</button>
     <button class="chip" data-at="tweet" aria-pressed="true" title="Nouveau tweet d'un compte de comptes_x.json → notifier"><span class="ck"></span>Tweets suivis</button>
     <button class="chip" data-at="downup" aria-pressed="true" title="Un titre DOWN/UP (type Anoto) vient de faire une grosse chute pas encore rachetée"><span class="ck"></span>DOWN/UP en phase DOWN</button>
       </div></div>
@@ -1171,7 +1238,7 @@ const VUES = {
   reco: ["Recommandations", "Les meilleurs potentiels « descend puis remonte », une fois le spread payé"],
   picks: ["Picks", "Titres qui font souvent de gros écarts dans la journée"],
   moves: ["Chutes & hausses", "Les plus gros mouvements sur la séance, 5 séances ou le mois"],
-  rebonds: ["Rebonds du jour", "Chute ≥ 10 % hier, hausse ≥ 10 % aujourd'hui · expliqués par l'IA"],
+  rebonds: ["Accueil · Rebonds", "Les titres qui rebondissent à chaque chute et qui sont en zone de rebond, sans l'avoir encore fait"],
   ranges: ["Ranges · rebond sur plancher", "Classés par ampleur : en gold, ceux qui baissent ET remontent de 20 % ou plus (type Anoto)"],
   simu: ["Simulateur", "Combien j'aurais gagné en achetant à l'ask après chaque grosse chute, et en revendant au bid"],
   downup: ["DOWN/UP · type Anoto", "Chaque grosse chute (≥ 20 %) est rachetée (≥ 20 %) en moins de 5 séances, de façon répétée"],
@@ -1201,7 +1268,8 @@ function allerVue(v) {
 $$(".nav[data-view]").forEach(b => b.onclick = () => allerVue(b.dataset.view));
 
 function majLignesVisibles() {
-  const src = { reco: () => RECOS, picks: () => filtrer(), moves: () => movesFiltres(), rebonds: () => rMode === "avant" ? AVANT.filter(x => !AV_PLIS[x.categorie]) : REBONDS, downup: () => DOWNUP, simu: () => SIMU, ranges: () => RANGES_V, live: () => LIVE, watch: () => WLIST, tweets: () => tweetsFiltres(), alertes: () => histoFiltre().filter(a => a.isin), flouz: () => FLOUZ_LIGNES }[vue];
+  const src = { reco: () => RECOS, picks: () => filtrer(), moves: () => movesFiltres(), rebonds: () => REB.vue === "liste" ? rebFiltres().filter(l => REB.cat || l.categorie === "action")
+    : rebFiltres().filter(l => REB.cat || !REB_PLIS[l.categorie]), downup: () => DOWNUP, simu: () => SIMU, ranges: () => RANGES_V, live: () => LIVE, watch: () => WLIST, tweets: () => tweetsFiltres(), alertes: () => histoFiltre().filter(a => a.isin), flouz: () => FLOUZ_LIGNES }[vue];
   lignesVisibles = src().map(l => l.isin);
 }
 
@@ -1414,71 +1482,150 @@ document.addEventListener("click", async e => {
   if (l) { l.explication = r; rendreMoves(); }
 });
 
-// ===================================================== rebonds du jour
-let rJour = null;
-let rMode = "faits", AVANT = [];
-const AV_PLIS = { couteau: true };  // les couteaux sont replies par defaut
-async function chargerRebonds() {
-  if (rMode === "avant") return chargerAvant();
-  const r = await api("/api/rebonds" + (rJour ? "?jour=" + rJour : "")).catch(() => null);
-  if (!r) return;
-  REBONDS = r.lignes;
-  if (r.jour === r.aujourd_hui) { $("#b-rebonds").hidden = !REBONDS.length; $("#b-rebonds").textContent = REBONDS.length; }
-  const jours = [...new Set([r.aujourd_hui, ...r.jours].filter(Boolean))].slice(0, 7);
-  const fmt = j => j === r.aujourd_hui ? "Aujourd'hui" : new Date(j).toLocaleDateString("fr-FR", { weekday: "short", day: "2-digit", month: "2-digit" });
-  $("#r-jours").innerHTML = jours.map(j => `<button data-j="${j}" class="${j === r.jour ? "on" : ""}">${fmt(j)}</button>`).join("");
-  $("#r-info").innerHTML = `<b>${REBONDS.length}</b> titre(s) · chute ≥ ${-r.seuils.chute_hier} % puis hausse ≥ ${r.seuils.rebond_auj} % · spread ≤ 20 %`;
-  $("#g-rebonds").innerHTML = REBONDS.length ? REBONDS.map(l => {
-    const e = l.explication;
-    return `<div class="rc ${l.isin === selIsin ? "sel" : ""}" data-isin="${l.isin}">
-      <div class="h">${avatar(l.nom, l.isin)}<div style="min-width:0;flex:1"><div style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(l.nom)}</div>
-        <div class="faint mono" style="font-size:11px">${l.isin}</div></div>${e ? catTag(e) : ""}${etoile(l.isin)}</div>
-      <div class="mv"><div><small>Hier</small><span class="down">${pct(l.var_veille, true)}</span></div><span class="arr">→</span>
-        <div><small>Aujourd'hui</small><span class="up">${pct(l.var_1j, true)}</span></div>
-        <div style="margin-left:auto;text-align:right"><small>Actuel</small><span style="font-size:16px">${px(l.courant)}</span></div></div>
-      ${e ? `<div class="why2"><span>Chute</span><span>${esc(e.cause_veille || "—")}</span><span>Rebond</span><span>${esc(e.cause_jour || "—")}</span></div>`
-          : `<div class="faint" style="font-size:12px">Explication IA en cours…</div>`}
-      <div class="foot">${spTag(l.spread_pct)}${l.hors_fuseau ? '<span class="flag asie">asie</span>' : ""}${badgeMotif(l.motif)}
-        ${e?.news?.[0] ? `<a href="${esc(e.news[0].lien)}" target="_blank" rel="noopener noreferrer" style="color:var(--accent);text-decoration:none;margin-left:auto;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">↗ ${esc(e.news[0].source)}</a>` : ""}</div>
-    </div>`;
-  }).join("") : `<div class="empty" style="grid-column:1/-1"><b>Aucun rebond ${r.jour === r.aujourd_hui ? "pour l'instant" : "ce jour-là"}</b>Aucun titre n'a chuté de ≥ 10 % la veille puis remonté de ≥ 10 %.</div>`;
-  if (vue === "rebonds") majLignesVisibles();
-}
-// ------------------------------------------------ "avant le rebond" : chutes du jour classees par leur passe
-const AV_LIB = { habituel: ["Rebond habituel", "à regarder pour acheter"], a_confirmer: ["À confirmer", "une seule chute passée rachetée"],
-  couteau: ["Couteau qui tombe", "aucun rebond connu : on n'achète pas"] };
-async function chargerAvant() {
-  const r = await api("/api/rebonds/avant").catch(() => null);
-  if (!r) return;
-  AVANT = r.lignes; rendreAvant(r);
-}
-function rendreAvant(r) {
-  const n = c => AVANT.filter(x => x.categorie === c).length;
-  $("#r-info").innerHTML = `<b>${AVANT.length}</b> chute(s) ≥ 10 % · <b class="up">${n("habituel")}</b> rebond habituel · <b style="color:var(--warn)">${n("a_confirmer")}</b> à confirmer · séance du ${r?.jour ? new Date(r.jour).toLocaleDateString("fr-FR") : "—"}`;
-  $("#g-avant").innerHTML = ["habituel", "a_confirmer", "couteau"].map(c => {
-    const L = AVANT.filter(x => x.categorie === c);
-    return `<div class="av-sec ${AV_PLIS[c] ? "ferme" : ""}" data-avc="${c}"><span class="chev">▸</span><span class="cat ${c}">${AV_LIB[c][0]}</span>${L.length}<small>· ${AV_LIB[c][1]}</small></div>`
-      + (AV_PLIS[c] ? "" : L.length ? L.map(x => `<div class="rc ${x.isin === selIsin ? "sel" : ""}" data-isin="${x.isin}">
-        <div class="h">${avatar(x.nom, x.isin)}<div style="min-width:0;flex:1"><div style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(x.nom)}</div>
-          <div class="faint mono" style="font-size:11px">${x.isin}</div></div><span class="cat ${c}">${AV_LIB[c][0]}</span>${etoile(x.isin)}</div>
-        <div class="mv"><div><small>Aujourd'hui</small><span class="down">${pct(x.var_1j, true)}</span></div>
-          <div><small>Rebond moyen passé</small><span class="${x.rebond_attendu ? "up" : "faint"}">${x.rebond_attendu ? "+" + x.rebond_attendu + " %" : "—"}</span></div>
-          <div style="margin-left:auto;text-align:right"><small>Net après spread</small><span class="${(x.net_attendu ?? -1) > 0 ? "up" : "down"}" style="font-size:16px">${x.net_attendu == null ? "—" : pct(x.net_attendu, true)}</span></div></div>
-        ${x.raisons.length ? `<ul class="raisons">${x.raisons.map(t => `<li>${esc(t)}</li>`).join("")}</ul>` : '<div class="faint" style="font-size:12px">Aucun historique de rebond sur le mois.</div>'}
-        ${x.cause ? `<div class="why2"><span>Cause</span><span>${x.cause_categorie ? catTag({ categorie: x.cause_categorie }) + " " : ""}${esc(x.cause)}</span></div>` : ""}
-        <div class="foot">${spTag(x.spread_pct)}<span>bid ${px(x.bid)} · ask ${px(x.ask)}</span>${x.hors_fuseau ? '<span class="flag asie">asie</span>' : ""}</div>
-      </div>`).join("") : `<div class="faint" style="grid-column:1/-1;font-size:12px;padding:4px 2px 8px">Aucun titre dans cette catégorie aujourd'hui.</div>`);
-  }).join("");
-  if (vue === "rebonds") majLignesVisibles();
-}
-$("#g-avant").onclick = e => { const h = e.target.closest("[data-avc]"); if (h) { AV_PLIS[h.dataset.avc] = !AV_PLIS[h.dataset.avc]; rendreAvant(); } };
-$("#r-mode").onclick = e => {
-  const b = e.target.closest("button"); if (!b) return;
-  rMode = b.dataset.m; $$("#r-mode button").forEach(x => x.classList.toggle("on", x === b));
-  $("#g-rebonds").hidden = rMode !== "faits"; $("#r-jours").hidden = rMode !== "faits"; $("#av-zone").hidden = rMode !== "avant";
-  rMode === "avant" ? chargerAvant() : chargerRebonds();
+// ===================================================== rebonds : vue unique
+// Une fiche par titre : combien de fois il a rebondi (4 detecteurs) + ou il en est maintenant.
+// accueil : "A prendre" + "toujours rebondi" (demande du 28/09 : des titres qui rebondissent A CHAQUE chute
+// et qui ne l'ont pas encore fait)
+// spreadMax : le prix d'achat doit "matcher" le prix affiche (demande du 29/09 : Intellabridge
+// ask 0,037 / bid 0,006, Mondo TV ask 0,032 / bid 0,0102). Memorise dans le navigateur.
+let REB = { cat: "action", q: "", data: null, vue: "cartes", toujours: true,
+  spreadMax: (() => { try { return +localStorage.getItem("spreadMax") || 10; } catch { return 10; } })(),
+  // l'ask doit etre au prix d'entree (support) ou juste au-dessus ; null = pas de filtre
+  entreeMax: (() => { try { const v = localStorage.getItem("entreeMax"); return v === "" ? null : v === null ? 5 : +v; } catch { return 5; } })() };  // REBONDS est declare avec l'etat global
+const REB_PLIS = { en_veille: true, couteau: true, ask_haut: true };  // replies par defaut : les plus nombreux, les moins actionnables
+const REB_LIB = {
+  action: ["À prendre", "rebondit d'habitude, en zone de rebond, et l'objectif laisse ≥ 10 % au-dessus de l'ask actuel", "positif"],
+  ask_haut: ["Ask trop haut", "rebondit d'habitude et le bid est en zone de rebond, mais l'ask ne suit pas : pas de marge en achetant maintenant", "a_confirmer"],
+  fait: ["Déjà fait", "a rebondi aujourd'hui (chute hier ≥ 10 %, hausse aujourd'hui ≥ 10 %)", "news"],
+  a_confirmer: ["À confirmer", "en zone de rebond, un seul précédent", "a_confirmer"],
+  couteau: ["Couteau qui tombe", "chute aujourd'hui sans aucun rebond connu", "couteau"],
+  en_veille: ["En veille", "rebondit d'habitude, mais pas en zone de rebond aujourd'hui", "neutre"],
 };
-$("#r-jours").onclick = e => { const b = e.target.closest("button"); if (b) { rJour = b.dataset.j; chargerRebonds(); } };
+const rebFiltres = () => REBONDS.filter(l => (!REB.cat || l.categorie === REB.cat)
+  && (!REB.toujours || (l.taux === 100 && l.rebonds >= 2))
+  && (l.spread_pct ?? 99) <= REB.spreadMax
+  // filtre d'entree : seulement pour ce qui est a acheter (a prendre / ask trop haut / a confirmer)
+  && (REB.entreeMax == null || !["action", "ask_haut", "a_confirmer"].includes(l.categorie)
+      || (l.ecart_entree != null && l.ecart_entree <= REB.entreeMax))
+  && (!REB.q || `${l.nom} ${l.isin}`.toLowerCase().includes(REB.q)));
+// ------------------------------------------------ ACHETER : ask LSX sous le vrai prix
+// Le seul cas ou acheter sur Trade Republic coute MOINS que le vrai marche (cas Anoto le soir,
+// quand L&S baisse aussi son ask). Scan serveur toutes les 5 min de 7h30 a 23h.
+async function chargerAchat(forcer = false) {
+  const q = "?spread_max=" + REB.spreadMax;
+  const r = await (forcer ? api("/api/achat/scanner" + q, { method: "POST" }) : api("/api/achat" + q)).catch(() => null);
+  if (!r) return;
+  const S = r.signaux || [];
+  const quand = r.heure ? new Date(r.heure).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) : "—";
+  $("#achat-zone").innerHTML = `<div class="achat ${S.length ? "" : "vide"}">
+    <h3>${S.length ? `🟢 Acheter : ask sous le vrai prix · ${S.length}` : "Acheter : aucun ask sous le vrai prix en ce moment"}
+      <small>${r.suivis || 0} titres surveillés · scan ${quand} · seuil ask ≤ ${r.seuil} % · spread ≤ ${r.spread_max} % <button class="btn" id="achat-go" style="height:24px;margin-left:8px">↻ Scanner</button></small></h3>
+    ${S.length ? `<table><thead><tr><th class="l">Titre</th><th title="Ce que tu paies">Ask LSX</th><th title="Marché d'origine converti en €">Vrai prix</th>
+        <th>Ask vs vrai prix</th><th title="Si L&S se réaligne sur le vrai marché (moins ~5 % de fourchette)">Gain si réalignement</th><th title="Écart entre ce que tu paies (ask) et ce que tu recevrais (bid)">Spread</th><th>Bid LSX</th><th class="l">Vrai prix à</th><th></th></tr></thead>
+      <tbody>${S.map(x => `<tr data-isin="${x.isin}"><td class="l"><b>${esc(x.nom)}</b><br><span class="faint mono" style="font-size:11px">${x.isin}</span></td>
+        <td class="num"><b>${px(x.ask)}</b></td><td class="num">${px(x.vrai_eur)}</td><td class="num up"><b>${pct(x.ecart_ask, true)}</b></td>
+        <td class="num up">${pct(x.gain_realignement, true)}</td><td>${spTag(x.spread)}</td><td class="num faint">${px(x.bid)} (${pct(x.ecart_bid, true)})</td>
+        <td class="l faint">${esc((x.vrai_heure || "").slice(11, 16))}</td><td>${etoile(x.isin)}</td></tr>`).join("")}</tbody></table>
+      <div class="risque">⚠ Achète avec un <b>ordre limite</b> au prix de l'ask. Vérifie la fiche (« LSX vs marché d'origine ») : le vrai prix Yahoo peut avoir ~15 min de retard.
+        Trade Republic peut annuler un trade sur un prix aberrant, et le réalignement n'est pas garanti si le marché d'origine ouvre en baisse.</div>`
+      : `<div class="risque">Le signal apparaît quand l'ask LSX (ton prix d'achat) passe au moins ${-r.seuil} % sous le vrai prix du marché d'origine :
+        c'est le cas « Anoto à 20h » qui a marché. Surveillé toutes les 5 min, de 7h30 à 23h, avec une alerte (bip + notification).</div>`}</div>`;
+  $("#achat-go").onclick = async e => { e.stopPropagation(); e.target.disabled = true; e.target.textContent = "…"; await chargerAchat(true); };
+  $$("#achat-zone tr[data-isin]").forEach(tr => tr.onclick = ev => { if (!ev.target.closest("[data-star]")) selectionner(tr.dataset.isin); });
+}
+setInterval(() => { if (vue === "rebonds") chargerAchat(); }, 60000);
+
+async function chargerRebonds() {
+  chargerAchat();
+  const r = await api("/api/rebonds/profils").catch(() => null);
+  if (!r) return;
+  REB.data = r; REBONDS = r.lignes;
+  const n = c => REBONDS.filter(l => l.categorie === c).length;
+  $("#b-rebonds").hidden = !n("action"); $("#b-rebonds").textContent = n("action");
+  $$("#r-cat button").forEach(b => { const c = b.dataset.c; b.dataset.n = c ? n(c) : REBONDS.length; });
+  rendreRebonds();
+}
+function rendreRebonds() {
+  const r = REB.data; if (!r) return;
+  const L = rebFiltres(), n = c => L.filter(l => l.categorie === c).length;
+  $("#r-info").innerHTML = `${REB.toujours ? "<b>rebond à chaque chute (100 %, ≥ 2 fois)</b> · " : ""}spread ≤ <b>${REB.spreadMax} %</b> · ${REB.entreeMax != null ? `ask ≤ entrée +<b>${REB.entreeMax} %</b> · ` : ""}<b>${n("action")}</b> à prendre (bénéfice ≥ ${r.seuils.potentiel_min} % à l'ask) · ${n("ask_haut")} ask trop haut · <b>${n("fait")}</b> déjà fait · ${n("a_confirmer")} à confirmer · ${n("couteau")} couteau(x) · ${n("en_veille")} en veille
+    · séance du ${r.jour ? new Date(r.jour).toLocaleDateString("fr-FR") : "—"} · spread ≤ ${r.seuils.spread_max} %`;
+  $("#g-rebonds").hidden = REB.vue === "liste"; $("#t-rebonds-box").hidden = REB.vue !== "liste";
+  if (REB.vue === "liste") {
+    // le plus proche du support d'abord : c'est la zone d'achat du range
+    const T = L.filter(l => REB.cat || l.categorie === "action").map(l => ({ ...l,
+      dist: l.support ? (l.bid / l.support - 1) * 100 : null, pot: l.potentiel_ask }))
+      .sort((a, b) => (b.pot ?? -999) - (a.pot ?? -999));  // le plus gros benefice possible d'abord
+    $("#t-rebonds").innerHTML = T.length ? T.map(l => `<tr data-isin="${l.isin}" class="${l.isin === selIsin ? "sel" : ""}">
+        <td class="l"><div style="display:flex;gap:8px;align-items:center">${avatar(l.nom, l.isin)}<div style="min-width:0"><b style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:190px">${esc(l.nom)}</b>
+          <span class="faint mono" style="font-size:11px">${l.isin}</span></div></div></td>
+        <td class="l"><span class="cat ${REB_LIB[l.categorie][2]}">${REB_LIB[l.categorie][0]}</span></td>
+        <td class="num">${px(l.bid)}</td><td class="num">${px(l.ask)}</td>
+        <td class="num up">${l.support ? px(l.support) : "—"}</td>
+        <td class="num ${l.ecart_entree == null ? "" : l.ecart_entree <= 5 ? "up" : "faint"}">${l.ecart_entree == null ? "—" : pct(l.ecart_entree, true)}</td>
+        <td class="num">${l.objectif ? px(l.objectif) : "—"}</td>
+        <td class="num ${(l.pot ?? -1) > 0 ? "up" : "down"}">${l.pot == null ? "—" : pct(l.pot, true)}</td>
+        <td class="num">${l.rebonds}/${l.occasions}</td>
+        <td class="num ${(l.net_attendu ?? -1) > 0 ? "up" : "down"}">${l.net_attendu == null ? "—" : pct(l.net_attendu, true)}</td>
+        <td>${spTag(l.spread_pct)}</td><td class="l faint" style="font-size:12px;max-width:220px">${esc(l.zone.join(" · ") || "—")}</td><td>${etoile(l.isin)}</td></tr>`).join("")
+      : `<tr><td colspan="13"><div class="empty"><b>Aucun titre</b>Rien ne correspond au filtre.</div></td></tr>`;
+    if (vue === "rebonds") majLignesVisibles();
+    return;
+  }
+  $("#g-rebonds").innerHTML = Object.keys(REB_LIB).filter(c => !REB.cat || REB.cat === c).map(c => {
+    const G = L.filter(l => l.categorie === c), [lib, sous, cls] = REB_LIB[c], ferme = REB_PLIS[c] && !REB.cat;
+    return `<div class="av-sec ${ferme ? "ferme" : ""}" data-rebc="${c}"><span class="chev">▸</span><span class="cat ${cls}">${lib}</span>${G.length}<small>· ${sous}</small></div>`
+      + (ferme ? "" : G.length ? G.map(l => `<div class="rc ${l.isin === selIsin ? "sel" : ""}" data-isin="${l.isin}">
+        <div class="h">${avatar(l.nom, l.isin)}<div style="min-width:0;flex:1"><div style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(l.nom)}</div>
+          <div class="faint mono" style="font-size:11px">${l.isin}</div></div><span class="cat ${cls}">${lib}</span>${etoile(l.isin)}</div>
+        <div class="mv">
+          <div><small>A rebondi</small><span>${l.rebonds}<span class="faint" style="font-size:13px">/${l.occasions} fois</span></span></div>
+          <div><small>Hier → aujourd'hui</small><span style="font-size:15px">${l.var_veille == null ? "—" : `<span class="${l.var_veille >= 0 ? "up" : "down"}">${pct(l.var_veille, true)}</span>`} → <span class="${l.var_1j >= 0 ? "up" : "down"}">${pct(l.var_1j, true)}</span></span></div>
+          <div style="margin-left:auto;text-align:right" title="Achat à l'ask actuel, revente à l'objectif (niveau atteint par le bid aux rebonds passés)"><small>Bénéfice possible</small><span class="${(l.potentiel_ask ?? -1) > 0 ? "up" : "down"}" style="font-size:16px">${l.potentiel_ask == null ? "—" : pct(l.potentiel_ask, true)}</span></div></div>
+        ${spark(l.clotures, 320, 34)}
+        ${l.zone.length ? `<div class="why2"><span>Maintenant</span><span>${esc(l.zone.join(" · "))}</span></div>` : ""}
+        <div class="reel-slot" data-reel="${l.isin}"><span class="reel-mini attente">vrai marché : vérification…</span></div>
+        <ul class="raisons">${l.habitude.map(t => `<li>${esc(t)}</li>`).join("")}</ul>
+        ${l.cause ? `<div class="why2"><span>Cause</span><span>${l.cause_categorie ? catTag({ categorie: l.cause_categorie }) + " " : ""}${esc(l.cause)}</span></div>` : ""}
+        ${l.support ? `<div class="why2"><span>Entrée</span><span><b>${px(l.support)}</b> (support) · ton prix d'achat ${px(l.ask)} = <b class="${(l.ecart_entree ?? 99) <= 5 ? "up" : "down"}">${pct(l.ecart_entree, true)}</b> ${
+          (l.ecart_entree ?? 99) <= 0 ? "· sous le prix d'entrée" : (l.ecart_entree ?? 99) <= 5 ? "· au prix d'entrée" : "· au-dessus du prix d'entrée"}</span></div>` : ""}
+        <div class="foot">${spTag(l.spread_pct)}<span>tu achètes à <b>${px(l.ask)}</b> · tu vends à ${px(l.bid)}</span>${l.objectif ? `<span>objectif ${px(l.objectif)}</span>` : ""}${l.hors_fuseau ? '<span class="flag asie">asie</span>' : ""}</div>
+      </div>`).join("") : `<div class="faint" style="grid-column:1/-1;font-size:12px;padding:4px 2px 8px">Aucun titre dans cette catégorie.</div>`);
+  }).join("") || `<div class="empty" style="grid-column:1/-1"><b>Aucun titre</b>Rien ne correspond au filtre.</div>`;
+  remplirReel();
+  if (vue === "rebonds") majLignesVisibles();
+}
+// pastilles "vrai marche" des cartes visibles, 3 requetes a la fois (Yahoo est lent)
+async function remplirReel() {
+  const slots = [...$$("#g-rebonds .reel-slot")];
+  const LIB = { lsx: "⚠ chute LSX seulement", reelle: "▼ chute réelle", aligne: "✓ vrai marché" };
+  const un = async el => {
+    const r = await reelDe(el.dataset.reel), x = r?.reel;
+    if (!el.isConnected) return;
+    el.innerHTML = x ? `<span class="reel-mini ${x.verdict}" title="${esc(x.texte)}">${LIB[x.verdict]} · ${esc(x.symbole)} ${pct(x.var_pct, true)} aujourd'hui${
+      r.ecart_ask != null ? ` · ask ${pct(r.ecart_ask, true)} vs vrai prix` : ""}</span>` : `<span class="reel-mini attente">vrai marché indisponible</span>`;
+  };
+  for (let i = 0; i < slots.length; i += 3) await Promise.all(slots.slice(i, i + 3).map(un));
+}
+$("#g-rebonds").onclick = e => { const h = e.target.closest("[data-rebc]"); if (h) { REB_PLIS[h.dataset.rebc] = !REB_PLIS[h.dataset.rebc]; rendreRebonds(); } };
+$("#r-cat").onclick = e => { const b = e.target.closest("button"); if (!b) return;
+  $$("#r-cat button").forEach(x => x.classList.toggle("on", x === b)); REB.cat = b.dataset.c; rendreRebonds(); };
+$("#r-q").oninput = e => { REB.q = e.target.value.trim().toLowerCase(); rendreRebonds(); };
+$("#r-spread").value = REB.spreadMax;
+$("#r-entree").value = REB.entreeMax ?? "";
+$("#r-entree").onchange = e => {
+  const v = e.target.value.trim(); REB.entreeMax = v === "" ? null : Math.max(0, Math.min(50, +v));
+  try { localStorage.setItem("entreeMax", REB.entreeMax ?? ""); } catch {}
+  rendreRebonds();
+};
+$("#r-spread").onchange = e => {
+  REB.spreadMax = Math.max(1, Math.min(50, +e.target.value || 10)); e.target.value = REB.spreadMax;
+  try { localStorage.setItem("spreadMax", REB.spreadMax); } catch {}
+  rendreRebonds(); chargerAchat();
+};
+$("#r-toujours").onclick = () => { REB.toujours = !REB.toujours; $("#r-toujours").setAttribute("aria-pressed", REB.toujours); rendreRebonds(); };
+$("#r-vue").onclick = e => { const b = e.target.closest("button"); if (!b) return;
+  $$("#r-vue button").forEach(x => x.classList.toggle("on", x === b)); REB.vue = b.dataset.v; rendreRebonds(); };
 
 // ============================================================== alertes
 // Bip généré par WebAudio (pas de fichier son). Chrome n'autorise le son
@@ -1491,6 +1638,7 @@ PREF.types.plancher ??= true;
 PREF.types.decroche ??= true;
 PREF.types.realigne ??= true;
 PREF.types.tweet ??= true;
+PREF.types.ask_bas ??= true;
 const sauverPref = () => { try { localStorage.alertes = JSON.stringify(PREF); } catch {} };
 let audio = null, dernierId = null, ALERTES = [];
 
@@ -1511,8 +1659,8 @@ function bip(montant = true) {
 ["click", "keydown"].forEach(ev => addEventListener(ev, () => { if (PREF.on && audio?.state === "suspended") audio.resume(); }, { once: true }));
 
 function notifier(a) {
-  const titre = a.type === "tweet" ? `𝕏 ${a.nom} a tweeté` : a.type === "decroche" ? `⤓ LSX décroche : ${a.nom}` : a.type === "realigne" ? `⤒ LSX réaligné : ${a.nom}` : a.type === "plancher" ? `⌊ Au plancher : ${a.nom}` : a.type === "downup" ? `⇅ Phase DOWN : ${a.nom}` : a.type === "regle" ? `🔔 ${a.nom}` : a.type === "rebond" ? `↗ Rebond : ${a.nom}` : a.type === "watchlist" ? `★ Watchlist en chute : ${a.nom}` : `↘ Forte chute : ${a.nom}`;
-  const corps = ["tweet", "regle", "downup", "plancher", "decroche", "realigne"].includes(a.type) ? (a.cause || "") : a.type === "rebond" ? `Hier ${pct(a.var_veille, true)} → aujourd'hui ${pct(a.var_1j, true)}\n${a.cause || ""}` : `${pct(a.var_1j, true)} · ${a.cause || "cause inconnue"}`;
+  const titre = a.type === "ask_bas" ? `🟢 Acheter ? ${a.nom} : ask sous le vrai prix` : a.type === "tweet" ? `𝕏 ${a.nom} a tweeté` : a.type === "decroche" ? `⤓ LSX décroche : ${a.nom}` : a.type === "realigne" ? `⤒ LSX réaligné : ${a.nom}` : a.type === "plancher" ? `⌊ Au plancher : ${a.nom}` : a.type === "downup" ? `⇅ Phase DOWN : ${a.nom}` : a.type === "regle" ? `🔔 ${a.nom}` : a.type === "rebond" ? `↗ Rebond : ${a.nom}` : a.type === "watchlist" ? `★ Watchlist en chute : ${a.nom}` : `↘ Forte chute : ${a.nom}`;
+  const corps = ["ask_bas", "tweet", "regle", "downup", "plancher", "decroche", "realigne"].includes(a.type) ? (a.cause || "") : a.type === "rebond" ? `Hier ${pct(a.var_veille, true)} → aujourd'hui ${pct(a.var_1j, true)}\n${a.cause || ""}` : `${pct(a.var_1j, true)} · ${a.cause || "cause inconnue"}`;
   if ("Notification" in window && Notification.permission === "granted") {
     const n = new Notification(titre, { body: corps, tag: a.cle, requireInteraction: false });
     n.onclick = () => { if (a.type === "tweet") window.open(a.lien, "_blank", "noopener"); else { window.focus(); selectionner(a.isin); } n.close(); };
@@ -1535,8 +1683,8 @@ function rendreAlertes() {
   $("#a-list").innerHTML = liste.length ? liste.map(a => ligneAlerte(a, lu)).join("")
     : `<div class="empty" style="padding:30px"><b>Aucune alerte</b>Elles arrivent après chaque passage du screener (toutes les 15 min en séance).</div>`;
 }
-const IC_ALERTE = { tweet: "𝕏", decroche: "⤓", realigne: "⤒", plancher: "⌊", downup: "⇅", regle: "🔔", rebond: "↗", watchlist: "★", chute: "↘" };
-const LIB_ALERTE = { chute: "Chutes ≤ −15 %", rebond: "Rebonds", watchlist: "Watchlist", regle: "Mes alertes", decroche: "Décrochage LSX",
+const IC_ALERTE = { ask_bas: "€", tweet: "𝕏", decroche: "⤓", realigne: "⤒", plancher: "⌊", downup: "⇅", regle: "🔔", rebond: "↗", watchlist: "★", chute: "↘" };
+const LIB_ALERTE = { ask_bas: "Ask sous le vrai prix", chute: "Chutes ≤ −15 %", rebond: "Rebonds", watchlist: "Watchlist", regle: "Mes alertes", decroche: "Décrochage LSX",
   realigne: "Réalignement", plancher: "Range au plancher", tweet: "Tweets", downup: "DOWN/UP" };
 function ligneAlerte(a, lu = Infinity, histo = false) {
   const h = new Date(a.heure);
@@ -1693,7 +1841,7 @@ async function verifierAlertes() {
   if (dernierId === null) dernierId = PREF.vu ?? r.dernier_id;
   const nouvelles = ALERTES.filter(a => a.id > dernierId && PREF.types[a.type]).reverse();
   if (nouvelles.length && PREF.on) {
-    bip(nouvelles.some(a => a.type === "rebond" || a.type === "realigne" || (a.type === "regle" && a.var_1j > 0)));
+    bip(nouvelles.some(a => a.type === "ask_bas" || a.type === "rebond" || a.type === "realigne" || (a.type === "regle" && a.var_1j > 0)));
     $("#bell").classList.remove("ring"); void $("#bell").offsetWidth; $("#bell").classList.add("ring");
     // au-delà de 3 d'un coup, une seule notification groupée
     if (nouvelles.length > 3) notifier({ type: "chute", cle: "groupe" + r.dernier_id, nom: `${nouvelles.length} nouvelles alertes`, var_1j: null,
@@ -2400,6 +2548,8 @@ async function ouvrirFiche(isin) {
   history.replaceState(null, "", "#" + isin);
   $("#d-empty").hidden = true; $("#d-body").hidden = false; $("#detail").classList.add("open");
   $("#chartbox").classList.add("loading");
+  { const connu0 = [PICKS, MOVES, REBONDS, WLIST, RECOS].flat().find(l => l.isin === isin);
+    $("#chart-load-t").textContent = `Chargement de ${connu0?.nom || isin}…`; }
   if (!fiche || fiche.isin !== isin) {
     const connu = PICKS.find(l => l.isin === isin) || MOVES.find(l => l.isin === isin) || REBONDS.find(l => l.isin === isin) || DOWNUP.find(l => l.isin === isin) || SIMU.find(l => l.isin === isin) || RANGES_V.find(l => l.isin === isin) || RECOS.find(l => l.isin === isin) || LIVE.find(l => l.isin === isin) || WLIST.find(l => l.isin === isin);
     $("#d-nom").textContent = connu?.nom || "Chargement…"; $("#d-meta").textContent = isin;
@@ -2560,16 +2710,35 @@ function histoLong(h) {
       <div>Sous ce prix · tout<b>${h.sous_ce_prix_tout ?? "—"} %</b></div>
     </div>`;
 }
+// operations sur titre : dividende, regroupement, fusion, augmentation de capital
+function operations(ev) {
+  const L = ev?.evenements || [];
+  if (!L.length && !ev?.resultats) return "";
+  const dd = s => s ? new Date(s).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" }) : "?";
+  return `<div class="sec-h" style="margin:14px 0 0"><h3>Opérations sur titre</h3>
+      <span class="faint" style="margin-left:auto;font-size:11.5px">news + calendrier Yahoo${ev.resultats ? ` · résultats le ${dd(ev.resultats)}` : ""}</span></div>
+    <div class="ops">${L.map(e => `<div class="${e.a_venir ? "venir" : ""}"><b>${e.a_venir ? "⚠ À venir · " : ""}${esc(e.libelle)}${e.ratio ? " " + esc(e.ratio) : ""}${e.montant ? " · " + esc(e.montant) : ""}</b>
+      <small>${esc(e.nature_date)} le ${dd(e.date)}${e.paiement ? ` · paiement le ${dd(e.paiement)}` : ""}</small><br>${esc(e.effet)}
+      ${(e.sources || []).slice(0, 2).map(s => `<br><a href="${esc(s.lien)}" target="_blank" rel="noopener noreferrer" style="color:var(--accent);text-decoration:none">↗ ${esc(s.source)} · ${esc(s.titre.slice(0, 80))}</a>`).join("")}</div>`).join("")}</div>`;
+}
+// badge du "point de vue prudent" lu dans le texte du LLM
+function badgeAvis(resume) {
+  const m = /Point de vue prudent\**\s*[—:-]*\s*«?\s*(Attendre|Surveiller|Éviter|Opportunité à étudier)/i.exec(resume || "");
+  if (!m) return "";
+  const cle = { attendre: "attendre", surveiller: "surveiller", "éviter": "eviter", "opportunité à étudier": "opportunite" }[m[1].toLowerCase()];
+  return `<div class="avis ${cle}" title="Point de vue prudent du LLM : pas un conseil d'investissement">${esc(m[1])}</div>`;
+}
 function rendreIA(r) {
   const m = r.motif, d = s => new Date(s).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" });
   const occ = m.occurrences.map(o => `<span class="${o.reussi ? "ok" : ""}" title="${o.rebond == null ? "Lendemain pas encore joué" : o.reussi ? "Rebond réussi" : "Pas de rebond suffisant"}">
       ${d(o.date)} <span class="down">${pct(o.chute, true)}</span> → ${o.rebond == null ? '<span class="faint">?</span>' : `<span class="${o.rebond >= 0 ? "up" : "down"}">${pct(o.rebond, true)}</span>`}</span>`).join("");
   $("#ia").innerHTML = `
-    ${r.resume ? `<div class="ia-out">${md(r.resume)}</div>` : `<div class="fl bad" style="margin-bottom:8px">IA indisponible : ${esc(r.erreur || "?")}</div>`}
+    ${r.resume ? `${badgeAvis(r.resume)}<div class="ia-out">${md(r.resume)}</div>` : `<div class="fl bad" style="margin-bottom:8px">IA indisponible : ${esc(r.erreur || "?")}</div>`}
     <div class="sec-h" style="margin:14px 0 0"><h3>Motif chute → rebond</h3>
       <span class="faint" style="margin-left:auto;font-size:11.5px">${m.chutes ? `${m.rebonds}/${m.chutes} rebonds · ${m.taux} %` : "aucune chute ≥ 15 % ce mois-ci"}</span></div>
     ${occ ? `<div class="occ">${occ}</div>` : ""}
     ${histoLong(r.historique)}
+    ${operations(r.operations)}
     <div class="sec-h" style="margin:14px 0 4px"><h3>News · 30 jours</h3><span class="faint" style="margin-left:auto;font-size:11.5px">recherche « ${esc(r.recherche)} »</span></div>
     <div class="news">${r.news.length ? r.news.map(n => `<a href="${esc(n.lien)}" target="_blank" rel="noopener noreferrer">
         <span class="nd">${d(n.date)}</span><span><div class="nt">${esc(n.titre)}</div><div class="ns">${esc(n.source)}</div></span></a>`).join("")
@@ -2598,6 +2767,7 @@ async function chargerOrigine(isin) {
   const evts = ORIG.evenements.map(e => `<span class="${e.rattrape ? "ok" : ""}" title="pire écart ${pct(e.pire, true)}">${d(e.date)} <span class="down">${pct(e.pire, true)}</span> → ${
     e.rattrape ? `<span class="up">rattrapé en ${e.delai} séance(s)</span>` : e.rattrape === null ? '<span style="color:var(--gold)">en cours</span>' : '<span class="faint">non</span>'}</span>`).join("");
   $("#or").innerHTML = `<div class="orig">
+      <div id="or-reel"></div>
       <div class="vd ${ORIG.verdict.niveau}" id="or-vd">${esc(ORIG.verdict.titre)}</div>
       <p id="or-txt">${esc(ORIG.verdict.texte)}</p>
       <div class="ec"><div><small>Vrai prix (${esc(ORIG.symbole)})</small><b>${px(ORIG.origine_eur)}</b></div>
@@ -2614,6 +2784,29 @@ async function chargerOrigine(isin) {
     </div>`;
   majEcartDirect();
   chargerPrevision(ORIG.isin);
+  chargerReel(ORIG.isin);
+}
+// "Ca baisse AUSSI sur le vrai marche ?" : variation du jour a l'origine + bid/ask LSX en direct
+const REEL = {};  // isin -> reponse /api/reel (cache de la page)
+async function reelDe(isin) {
+  if (REEL[isin] && Date.now() - REEL[isin].quand < 120000) return REEL[isin];
+  const r = await api("/api/reel/" + isin).catch(() => null);
+  if (r) REEL[isin] = { ...r, quand: Date.now() };
+  return r;
+}
+async function chargerReel(isin) {
+  const r = await reelDe(isin);
+  if (fiche?.isin !== isin || !$("#or-reel")) return;
+  const x = r?.reel;
+  if (!x) { $("#or-reel").innerHTML = ""; return; }
+  const TIT = { lsx: "⚠ Chute LSX seulement", reelle: "▼ Chute réelle", aligne: "✓ LSX aligné sur le vrai marché" };
+  $("#or-reel").innerHTML = `<div class="reel ${x.verdict}"><b class="t">${TIT[x.verdict]}</b>${esc(x.texte)}
+    ${r.ecart_ask != null && r.ecart_ask > 10 ? `<br><b>Pour acheter :</b> l'ask LSX est ${pct(r.ecart_ask, true)} au-dessus du vrai prix. Attends que ${esc(x.symbole)} soit ouvert et que l'ask revienne près du vrai prix (ordre limite).` : ""}
+    <div class="g"><div>${esc(x.symbole)} aujourd'hui<b class="${x.var_pct >= 0 ? "up" : "down"}">${pct(x.var_pct, true)}</b></div>
+      <div>Vrai prix (€)<b>${px(r.vrai_eur)}</b></div>
+      <div>Bid LSX (tu vends)<b class="${(r.ecart_bid ?? 0) < -10 ? "down" : ""}">${px(r.bid)} · ${pct(r.ecart_bid, true)}</b></div>
+      <div>Ask LSX (tu achètes)<b class="${(r.ecart_ask ?? 0) > 10 ? "down" : ""}">${px(r.ask)} · ${pct(r.ecart_ask, true)}</b></div></div>
+    <div class="faint" style="font-size:11px;margin-top:6px">Marché ${x.ouvert ? "ouvert" : "fermé"} · dernier échange ${esc(x.dernier_echange)} · Yahoo peut avoir ~15 min de retard</div></div>`;
 }
 
 // Carte de chaleur : pour chaque jour et chaque heure, part des observations où le bid LSX
@@ -2832,8 +3025,8 @@ document.addEventListener("keydown", e => {
   await chargerWatch();
   await Promise.all([majEtat(), chargerPicks(), chargerLive()]);
   const h = location.hash.slice(1);
+  allerVue(VUES[h] ? h : "rebonds");  // accueil = Rebonds ; liens directs : #moves, #live, #watch
   if (/^[A-Z]{2}[A-Z0-9]{10}$/.test(h)) selectionner(h);
-  else if (VUES[h]) allerVue(h);  // liens directs : #moves, #live, #watch
 })();
 setInterval(majEtat, 3000);
 setInterval(chargerLive, 15000);
